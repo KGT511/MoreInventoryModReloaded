@@ -1,7 +1,6 @@
 package moreinventory.block;
 
 import com.mojang.serialization.MapCodec;
-
 import moreinventory.blockentity.CatchallBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -23,7 +22,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -32,23 +31,26 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class CatchallBlock extends BaseEntityBlock {
 
-    public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
 
     protected static final VoxelShape insideShape = Block.box(1.0D, 1.0D, 1.0D, 15.0D, 12.0D, 15.0D);
     protected static final VoxelShape renderShape = Block.box(0.0D, 0.0D, 0.0D, 16.0D, 12.0D, 16.0D);
     protected static final VoxelShape shape = Shapes.join(renderShape, insideShape, BooleanOp.ONLY_FIRST);
 
     //codec
-    public static final MapCodec<CatchallBlock> CODEC = simpleCodec((props) -> new CatchallBlock());
+    public static final MapCodec<CatchallBlock> CODEC = simpleCodec(CatchallBlock::new);
 
-    public CatchallBlock() {
-        super(Properties.of()
-                .sound(SoundType.WOOD)
-                .strength(1.0F, 5.0F));
+    public CatchallBlock(Properties properties) {
+        super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
 
-    @SuppressWarnings("deprecation")
+    public static Properties getDefaultProperties() {
+        return Properties.of()
+                .sound(SoundType.WOOD)
+                .strength(1.0F, 5.0F);
+    }
+
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
         if (!state.is(newState.getBlock())) {
@@ -86,7 +88,7 @@ public class CatchallBlock extends BaseEntityBlock {
     }
 
     @Override
-    public VoxelShape getOcclusionShape(BlockState state, BlockGetter worldIn, BlockPos pos) {
+    public VoxelShape getOcclusionShape(BlockState state) {
         return renderShape;
     }
 

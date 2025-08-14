@@ -1,9 +1,6 @@
 package moreinventory.block;
 
-import javax.annotation.Nullable;
-
 import com.mojang.serialization.MapCodec;
-
 import moreinventory.blockentity.BaseTransportBlockEntity;
 import moreinventory.blockentity.BlockEntities;
 import moreinventory.blockentity.ExporterBlockEntity;
@@ -30,16 +27,20 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
+import javax.annotation.Nullable;
+
 public class TransportBlock extends BaseEntityBlock {
 
-    public static final DirectionProperty FACING_IN = DirectionProperty.create("facing_in", Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN);;
-    public static final DirectionProperty FACING_OUT = DirectionProperty.create("facing_out", Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN);;
+    public static final EnumProperty<Direction> FACING_IN = EnumProperty.create("facing_in", Direction.class);
+    ;
+    public static final EnumProperty<Direction> FACING_OUT = EnumProperty.create("facing_out", Direction.class);
+    ;
     private boolean isImporter;
 
     private static final VoxelShape SHAPE_CENTER = Block.box(7.0D, 7.0D, 7.0D, 9.0D, 9.0D, 9.0D);
@@ -112,14 +113,18 @@ public class TransportBlock extends BaseEntityBlock {
             Block.box(10.0D, 6.0D, 6.0D, 11.0D, 10.0D, 10.0D));
 
     //codec
-    public static final MapCodec<TransportBlock> CODEC = simpleCodec((props) -> new TransportBlock(false));
+    public static final MapCodec<TransportBlock> CODEC = simpleCodec((props) -> new TransportBlock(props, false));
 
-    protected TransportBlock(boolean isImporterIn) {
-        super(Properties.of()
-                .sound(SoundType.STONE)
-                .strength(1.0f));
+    protected TransportBlock(Properties properties, boolean isImporterIn) {
+        super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING_IN, Direction.DOWN).setValue(FACING_OUT, Direction.UP));
         isImporter = isImporterIn;
+    }
+
+    public static Properties getDefaultProperties() {
+        return Properties.of()
+                .sound(SoundType.STONE)
+                .strength(1.0f);
     }
 
     @Override
@@ -157,51 +162,51 @@ public class TransportBlock extends BaseEntityBlock {
     }
 
     @Override
-    public VoxelShape getOcclusionShape(BlockState state, BlockGetter worldIn, BlockPos pos) {
+    public VoxelShape getOcclusionShape(BlockState state) {
         var shapeIn = SHAPE_IN_DOWN;
         var shapeOut = SHAPE_OUT_UP;
         var in = state.getValue(FACING_IN);
         var out = state.getValue(FACING_OUT);
 
         switch (in) {
-        case DOWN:
-            shapeIn = SHAPE_IN_DOWN;
-            break;
-        case UP:
-            shapeIn = SHAPE_IN_UP;
-            break;
-        case NORTH:
-            shapeIn = SHAPE_IN_NORTH;
-            break;
-        case SOUTH:
-            shapeIn = SHAPE_IN_SOUTH;
-            break;
-        case WEST:
-            shapeIn = SHAPE_IN_WEST;
-            break;
-        case EAST:
-            shapeIn = SHAPE_IN_EAST;
-            break;
+            case DOWN:
+                shapeIn = SHAPE_IN_DOWN;
+                break;
+            case UP:
+                shapeIn = SHAPE_IN_UP;
+                break;
+            case NORTH:
+                shapeIn = SHAPE_IN_NORTH;
+                break;
+            case SOUTH:
+                shapeIn = SHAPE_IN_SOUTH;
+                break;
+            case WEST:
+                shapeIn = SHAPE_IN_WEST;
+                break;
+            case EAST:
+                shapeIn = SHAPE_IN_EAST;
+                break;
         }
         switch (out) {
-        case DOWN:
-            shapeOut = SHAPE_OUT_DOWN;
-            break;
-        case UP:
-            shapeOut = SHAPE_OUT_UP;
-            break;
-        case NORTH:
-            shapeOut = SHAPE_OUT_NORTH;
-            break;
-        case SOUTH:
-            shapeOut = SHAPE_OUT_SOUTH;
-            break;
-        case WEST:
-            shapeOut = SHAPE_OUT_WEST;
-            break;
-        case EAST:
-            shapeOut = SHAPE_OUT_EAST;
-            break;
+            case DOWN:
+                shapeOut = SHAPE_OUT_DOWN;
+                break;
+            case UP:
+                shapeOut = SHAPE_OUT_UP;
+                break;
+            case NORTH:
+                shapeOut = SHAPE_OUT_NORTH;
+                break;
+            case SOUTH:
+                shapeOut = SHAPE_OUT_SOUTH;
+                break;
+            case WEST:
+                shapeOut = SHAPE_OUT_WEST;
+                break;
+            case EAST:
+                shapeOut = SHAPE_OUT_EAST;
+                break;
         }
 
         return Shapes.or(shapeIn, SHAPE_CENTER, shapeOut);
@@ -209,7 +214,7 @@ public class TransportBlock extends BaseEntityBlock {
 
     @Override
     public VoxelShape getInteractionShape(BlockState state, BlockGetter worldIn, BlockPos pos) {
-        return this.getOcclusionShape(state, worldIn, pos);
+        return this.getOcclusionShape(state);
     }
 
     @Override

@@ -11,10 +11,14 @@ import net.minecraft.world.item.context.UseOnContext;
 public class PlatingItem extends Item {
     StorageBoxType type;
 
-    public PlatingItem(StorageBoxType type) {
-        super(new Properties()
-                .stacksTo(64));
+    public PlatingItem(Properties properties, StorageBoxType type) {
+        super(properties);
         this.type = type;
+    }
+
+    public static Properties getDefaultProperties() {
+        return new Properties()
+                .stacksTo(64);
     }
 
     @Override

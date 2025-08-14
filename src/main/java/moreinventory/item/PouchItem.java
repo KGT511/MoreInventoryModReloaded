@@ -1,7 +1,5 @@
 package moreinventory.item;
 
-import java.util.TreeMap;
-
 import moreinventory.container.PouchContainerProvider;
 import moreinventory.inventory.PouchInventory;
 import net.minecraft.sounds.SoundEvents;
@@ -9,7 +7,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
@@ -19,17 +16,23 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LayeredCauldronBlock;
 
+import java.util.TreeMap;
+
 public class PouchItem extends Item {
     private static final TreeMap<DyeColor, PouchItem> ITEM_BY_COLOR = new TreeMap<>();
     public static final int default_color = 0;
     private DyeColor color;
 
-    public PouchItem(DyeColor color) {
-        super(new Properties()
-                .durability(0));
+    public PouchItem(Properties properties, DyeColor color) {
+        super(properties);
         this.color = color;
         if (color != null)
             ITEM_BY_COLOR.put(color, this);
+    }
+
+    public static Properties getDefaultProperties() {
+        return new Properties()
+                .durability(0);
     }
 
     @Override
@@ -77,19 +80,18 @@ public class PouchItem extends Item {
                 inventory.transferToChest((Container) tile);
             }
 
-            return InteractionResult.sidedSuccess(level.isClientSide);
+            return InteractionResult.SUCCESS_SERVER;
         }
 
         return InteractionResult.PASS;
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
-        var itemStack = player.getItemInHand(hand);
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
 
         if (!level.isClientSide && !player.isShiftKeyDown() && hand.equals(InteractionHand.MAIN_HAND))
             player.openMenu(new PouchContainerProvider());
-        return InteractionResultHolder.sidedSuccess(itemStack, level.isClientSide());
+        return InteractionResult.SUCCESS_SERVER;
 
     }
 

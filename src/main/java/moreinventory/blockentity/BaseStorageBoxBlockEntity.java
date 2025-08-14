@@ -1,9 +1,5 @@
 package moreinventory.blockentity;
 
-import java.lang.reflect.InvocationTargetException;
-
-import javax.annotation.Nullable;
-
 import moreinventory.block.StorageBoxBlock;
 import moreinventory.blockentity.storagebox.network.IStorageBoxNetwork;
 import moreinventory.blockentity.storagebox.network.StorageBoxNetworkManager;
@@ -34,6 +30,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.IItemHandlerModifiable;
+
+import javax.annotation.Nullable;
+import java.lang.reflect.InvocationTargetException;
 
 public class BaseStorageBoxBlockEntity extends RandomizableContainerBlockEntity implements Container, IStorageBoxNetwork, WorldlyContainer {
 
@@ -83,11 +82,11 @@ public class BaseStorageBoxBlockEntity extends RandomizableContainerBlockEntity 
             return blockEntity;
 
         } catch (InstantiationException
-                | IllegalAccessException
-                | IllegalArgumentException
-                | InvocationTargetException
-                | NoSuchMethodException
-                | SecurityException e) {
+                 | IllegalAccessException
+                 | IllegalArgumentException
+                 | InvocationTargetException
+                 | NoSuchMethodException
+                 | SecurityException e) {
             e.printStackTrace();
             return new BaseStorageBoxBlockEntity(to, this.getBlockPos(), this.getBlockState());
         }
@@ -309,33 +308,33 @@ public class BaseStorageBoxBlockEntity extends RandomizableContainerBlockEntity 
 
     public boolean rightClickEvent(Level level, Player player) {
         switch (++clickCount) {
-        case 1:
-            clickTime = 16;
-            var itemstack = player.getMainHandItem();
-            if (!hasContents()) {
-                registerItems(itemstack);
-            }
+            case 1:
+                clickTime = 16;
+                var itemstack = player.getMainHandItem();
+                if (!hasContents()) {
+                    registerItems(itemstack);
+                }
 
-            if (player.isShiftKeyDown()) {
-                clearRegister();
-            }
+                if (player.isShiftKeyDown()) {
+                    clearRegister();
+                }
 
-            store(itemstack);
+                store(itemstack);
 
-            break;
-        case 2:
-            storeItemInInventory(player, player.getInventory());
-            player.tick();
-            break;
-        case 3:
-            clickCount = 0;
+                break;
+            case 2:
+                storeItemInInventory(player, player.getInventory());
+                player.tick();
+                break;
+            case 3:
+                clickCount = 0;
 
-            getStorageBoxNetworkManager().storeInventoryToNetwork(player, player.getInventory(), this.worldPosition);
-            player.tick();
-            break;
-        default:
-            clickCount = 0;
-            break;
+                getStorageBoxNetworkManager().storeInventoryToNetwork(player, player.getInventory(), this.worldPosition);
+                player.tick();
+                break;
+            default:
+                clickCount = 0;
+                break;
         }
 
         return true;
@@ -469,26 +468,36 @@ public class BaseStorageBoxBlockEntity extends RandomizableContainerBlockEntity 
         }
     }
 
-    //隣接したコンテナが破壊されたときに呼ばれる
+    //隣接したブロックコンテナが破壊されたときに呼ばれる
     //ネットワークから外し、破壊されたことによりネットワークが分断される場合は新たなネットワークを形成する。
-    public void onDestroyedNeighbor(BlockPos destroyedPos) {
+
+    /**
+     * ブロックの周囲（6方向）に破壊や設置で変更が起きた際に呼ばれる。
+     * 変更が起きたブロックの周囲に2個以上コンテナがあれば、ネットワークの分断や結合の可能性があるため、ネットワークを再構成する。
+     * 分断・結合が起きるかの判定はしないため、無駄に再構成する可能性がある。
+     *
+     * @param changedPos 変更が起きたブロックの位置
+     */
+    public void onNeighborChanged(BlockPos changedPos) {
         int multiple = 0;
         for (Direction d : Direction.values()) {
-            var blockEntity = this.level.getBlockEntity(destroyedPos.relative(d));
+            var blockEntity = this.level.getBlockEntity(changedPos.relative(d));
             if (blockEntity instanceof BaseStorageBoxBlockEntity) {
                 var baseStorageBoxBlockEntity = (BaseStorageBoxBlockEntity) blockEntity;
-                baseStorageBoxBlockEntity.getStorageBoxNetworkManager().remove(destroyedPos);
+                baseStorageBoxBlockEntity.getStorageBoxNetworkManager().remove(changedPos);
                 multiple++;
             }
         }
         if (1 < multiple) {
+            //破壊されたコンテナの周囲に2個以上コンテナがある場合、ネットワークが分断された可能性があるため再構築する。
+            //分断されない場合もあるが、そのチェックはしていない。
             this.setStorageBoxNetworkManager(new StorageBoxNetworkManager(this.level, this.worldPosition));
         }
     }
 
     @Override
     public int[] getSlotsForFace(Direction p_19238_) {
-        return new int[] {};
+        return new int[]{};
     }
 
     @Override

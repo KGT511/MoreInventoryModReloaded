@@ -15,6 +15,8 @@ import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomModelData;
 
+import java.util.List;
+
 public final class MIMUtils {
     public static int normalIndex(int idx, int size) {
         if (size == 0)
@@ -58,7 +60,10 @@ public final class MIMUtils {
     }
 
     public static void setIcon(ItemStack s, byte num) {
-        s.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(num));
+        s.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(List.of((float) num),
+                List.of(),
+                List.of(),
+                List.of()));
     }
 
     public static boolean intToBool(int val) {

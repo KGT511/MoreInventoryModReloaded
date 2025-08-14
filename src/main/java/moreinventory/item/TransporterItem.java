@@ -1,8 +1,5 @@
 package moreinventory.item;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import moreinventory.block.StorageBoxBlock;
 import moreinventory.blockentity.BaseStorageBoxBlockEntity;
 import moreinventory.storagebox.StorageBoxType;
@@ -38,15 +35,22 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-public class TransporterItem extends Item {
-    public TransporterItem() {
-        super(new Properties()
-                .durability(40));
-    }
+import java.util.ArrayList;
+import java.util.List;
 
+public class TransporterItem extends Item {
     public static final ArrayList<Block> transportableBlocks = new ArrayList<>();
     private static final String tagKey = "tileBlock";
     private static final String blockStateKey = "blockState";
+
+    public TransporterItem(Properties properties) {
+        super(properties);
+    }
+
+    public static Properties getDefaultProperties() {
+        return new Properties()
+                .durability(40);
+    }
 
     //チェストだけでなく以下の計6つも対応してる
     public static final void setTransportableBlocks() {

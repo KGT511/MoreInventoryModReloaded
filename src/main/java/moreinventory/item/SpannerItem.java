@@ -1,7 +1,5 @@
 package moreinventory.item;
 
-import java.util.ArrayList;
-
 import moreinventory.block.Blocks;
 import moreinventory.storagebox.StorageBox;
 import net.minecraft.world.InteractionResult;
@@ -11,10 +9,16 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Rotation;
 
+import java.util.ArrayList;
+
 public class SpannerItem extends Item {
-    public SpannerItem() {
-        super(new Properties()
-                .durability(0));
+    public SpannerItem(Properties properties) {
+        super(properties);
+    }
+
+    public static Properties getDefaultProperties() {
+        return new Properties()
+                .durability(0);
     }
 
     public static final ArrayList<Block> rotatableBlockList = new ArrayList<>();

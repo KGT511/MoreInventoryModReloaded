@@ -10,6 +10,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -77,7 +78,7 @@ public class TransportContainerScreen extends AbstractContainerScreen<TransportC
     protected void renderBg(GuiGraphics poseStack, float p_230450_2_, int p_230450_3_, int p_230450_4_) {
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
-        poseStack.blit(DISPENSER_GUI_TEXTURE, i, j, 0, 0, this.imageWidth, this.imageHeight);
+        poseStack.blit(RenderType::guiTextured, DISPENSER_GUI_TEXTURE, i, j, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
     }
 
     @Override

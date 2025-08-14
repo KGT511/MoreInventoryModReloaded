@@ -1,7 +1,5 @@
 package moreinventory.blockentity;
 
-import java.util.function.Supplier;
-
 import moreinventory.block.Blocks;
 import moreinventory.blockentity.storagebox.BronzeStorageBoxBlockEntity;
 import moreinventory.blockentity.storagebox.CopperStorageBoxBlockEntity;
@@ -21,54 +19,57 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
+import java.util.Set;
+import java.util.function.Supplier;
+
 public class BlockEntities {
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, MoreInventoryMOD.MOD_ID);
 
     public static final RegistryObject<BlockEntityType<CatchallBlockEntity>> CATCHALL_BLOCK_ENTITY_TYPE = register(
             "catchall_tile",
-            () -> BlockEntityType.Builder.of(CatchallBlockEntity::new, Blocks.CATCHALL.get()).build(null));
+            () -> new BlockEntityType<>(CatchallBlockEntity::new, Set.of(Blocks.CATCHALL.get())));
 
     public static final RegistryObject<BlockEntityType<WoodStorageBoxBlockEntity>> WOOD_STORAGE_BOX_BLOCK_ENTITY_TYPE = register(
             "storage_box_tile_wood",
-            () -> BlockEntityType.Builder.of(WoodStorageBoxBlockEntity::new, Blocks.WOOD_STORAGE_BOX.get()).build(null));
+            () -> new BlockEntityType<>(WoodStorageBoxBlockEntity::new, Set.of(Blocks.WOOD_STORAGE_BOX.get())));
     public static final RegistryObject<BlockEntityType<IronStorageBoxBlockEntity>> IRON_STORAGE_BOX_BLOCK_ENTITY_TYPE = register(
             "storage_box_tile_iron",
-            () -> BlockEntityType.Builder.of(IronStorageBoxBlockEntity::new, Blocks.IRON_STORAGE_BOX.get()).build(null));
+            () -> new BlockEntityType<>(IronStorageBoxBlockEntity::new, Set.of(Blocks.IRON_STORAGE_BOX.get())));
     public static final RegistryObject<BlockEntityType<GoldStorageBoxBlockEntity>> GOLD_STORAGE_BOX_BLOCK_ENTITY_TYPE = register(
             "storage_box_tile_gold",
-            () -> BlockEntityType.Builder.of(GoldStorageBoxBlockEntity::new, Blocks.GOLD_STORAGE_BOX.get()).build(null));
+            () -> new BlockEntityType<>(GoldStorageBoxBlockEntity::new, Set.of(Blocks.GOLD_STORAGE_BOX.get())));
     public static final RegistryObject<BlockEntityType<DiamondStorageBoxBlockEntity>> DIAMOND_STORAGE_BOX_BLOCK_ENTITY_TYPE = register(
             "storage_box_tile_diamond",
-            () -> BlockEntityType.Builder.of(DiamondStorageBoxBlockEntity::new, Blocks.DIAMOND_STORAGE_BOX.get()).build(null));
+            () -> new BlockEntityType<>(DiamondStorageBoxBlockEntity::new, Set.of(Blocks.DIAMOND_STORAGE_BOX.get())));
     public static final RegistryObject<BlockEntityType<EmeraldStorageBoxBlockEntity>> EMERALD_STORAGE_BOX_BLOCK_ENTITY_TYPE = register(
             "storage_box_tile_emerald",
-            () -> BlockEntityType.Builder.of(EmeraldStorageBoxBlockEntity::new, Blocks.EMERALD_STORAGE_BOX.get()).build(null));
+            () -> new BlockEntityType<>(EmeraldStorageBoxBlockEntity::new, Set.of(Blocks.EMERALD_STORAGE_BOX.get())));
 
     public static final RegistryObject<BlockEntityType<CopperStorageBoxBlockEntity>> COPPER_STORAGE_BOX_BLOCK_ENTITY_TYPE = register(
             "storage_box_tile_copper",
-            () -> BlockEntityType.Builder.of(CopperStorageBoxBlockEntity::new, Blocks.COPPER_STORAGE_BOX.get()).build(null));
+            () -> new BlockEntityType<>(CopperStorageBoxBlockEntity::new, Set.of(Blocks.COPPER_STORAGE_BOX.get())));
     public static final RegistryObject<BlockEntityType<TinStorageBoxBlockEntity>> TIN_STORAGE_BOX_BLOCK_ENTITY_TYPE = register(
             "storage_box_tile_tin",
-            () -> BlockEntityType.Builder.of(TinStorageBoxBlockEntity::new, Blocks.TIN_STORAGE_BOX.get()).build(null));
+            () -> new BlockEntityType<>(TinStorageBoxBlockEntity::new, Set.of(Blocks.TIN_STORAGE_BOX.get())));
     public static final RegistryObject<BlockEntityType<BronzeStorageBoxBlockEntity>> BRONZE_STORAGE_BOX_BLOCK_ENTITY_TYPE = register(
             "storage_box_tile_bronze",
-            () -> BlockEntityType.Builder.of(BronzeStorageBoxBlockEntity::new, Blocks.BRONZE_STORAGE_BOX.get()).build(null));
+            () -> new BlockEntityType<>(BronzeStorageBoxBlockEntity::new, Set.of(Blocks.BRONZE_STORAGE_BOX.get())));
     public static final RegistryObject<BlockEntityType<SilverStorageBoxBlockEntity>> SILVER_STORAGE_BOX_BLOCK_ENTITY_TYPE = register(
             "storage_box_tile_silver",
-            () -> BlockEntityType.Builder.of(SilverStorageBoxBlockEntity::new, Blocks.SILVER_STORAGE_BOX.get()).build(null));
+            () -> new BlockEntityType<>(SilverStorageBoxBlockEntity::new, Set.of(Blocks.SILVER_STORAGE_BOX.get())));
     public static final RegistryObject<BlockEntityType<SteelStorageBoxBlockEntity>> STEEL_STORAGE_BOX_BLOCK_ENTITY_TYPE = register(
             "storage_box_tile_steel",
-            () -> BlockEntityType.Builder.of(SteelStorageBoxBlockEntity::new, Blocks.STEEL_STORAGE_BOX.get()).build(null));
+            () -> new BlockEntityType<>(SteelStorageBoxBlockEntity::new, Set.of(Blocks.STEEL_STORAGE_BOX.get())));
     public static final RegistryObject<BlockEntityType<GlassStorageBoxBlockEntity>> GLASS_STORAGE_BOX_BLOCK_ENTITY_TYPE = register(
             "storage_box_tile_glass",
-            () -> BlockEntityType.Builder.of(GlassStorageBoxBlockEntity::new, Blocks.GLASS_STORAGE_BOX.get()).build(null));
+            () -> new BlockEntityType<>(GlassStorageBoxBlockEntity::new, Set.of(Blocks.GLASS_STORAGE_BOX.get())));
 
     public static final RegistryObject<BlockEntityType<? extends BaseTransportBlockEntity>> IMPORTER_BLOCK_ENTITY_TYPE = register(
             "importer_tile",
-            () -> BlockEntityType.Builder.of(ImporterBlockEntity::new, Blocks.IMPORTER.get()).build(null));
+            () -> new BlockEntityType<>(ImporterBlockEntity::new, Set.of(Blocks.IMPORTER.get())));
     public static final RegistryObject<BlockEntityType<? extends BaseTransportBlockEntity>> EXPORTER_BLOCK_ENTITY_TYPE = register(
             "exporter_tile",
-            () -> BlockEntityType.Builder.of(ExporterBlockEntity::new, Blocks.EXPORTER.get()).build(null));
+            () -> new BlockEntityType<>(ExporterBlockEntity::new, Set.of(Blocks.EXPORTER.get())));
 
     public static <T extends BlockEntityType<?>> RegistryObject<T> register(String name, Supplier<T> blockEntity) {
         var ret = BLOCK_ENTITIES.register(name, blockEntity);

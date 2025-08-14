@@ -24,7 +24,7 @@ public class DataGenerators {
         var blockTags = new BlockTagGenerator(packout, lookupProvider, existingFileHelper);
         generator.addProvider(event.includeServer(), blockTags);
         generator.addProvider(event.includeServer(), LootTablesGenerator.create(packout, lookupProvider));
-        generator.addProvider(event.includeServer(), new RecipesGenerator(packout, lookupProvider));
+        generator.addProvider(event.includeServer(), new RecipesGenerator.Runner(packout, lookupProvider));
         generator.addProvider(event.includeServer(), new EnUsLanguageGenerator(packout, MoreInventoryMOD.MOD_ID));
         generator.addProvider(event.includeServer(), new JaJpLanguageGenerator(packout, MoreInventoryMOD.MOD_ID));
     }

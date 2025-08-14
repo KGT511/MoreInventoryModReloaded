@@ -10,6 +10,7 @@ import moreinventory.util.MIMUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
@@ -96,17 +97,17 @@ public class PouchContainerScreen extends AbstractContainerScreen<PouchContainer
     protected void renderBg(GuiGraphics poseStack, float p_230450_2_, int p_230450_3_, int p_230450_4_) {
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
-        poseStack.blit(POUCH_GUI_TEXTURE, i, j, 0, 0, this.imageWidth, this.imageHeight);
+        poseStack.blit(RenderType::guiTextured, POUCH_GUI_TEXTURE, i, j, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
 
-        poseStack.blit(POUCH_GUI_TEXTURE, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
-        poseStack.blit(POUCH_GUI_TEXTURE, this.leftPos + this.imageWidth, this.topPos + 3, this.imageWidth + 8, 0, 68, 20);
+        poseStack.blit(RenderType::guiTextured, POUCH_GUI_TEXTURE, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
+        poseStack.blit(RenderType::guiTextured, POUCH_GUI_TEXTURE, this.leftPos + this.imageWidth, this.topPos + 3, this.imageWidth + 8, 0, 68, 20, 256, 256);
 
         for (int k = 0; k < this.grade; ++k) {
-            poseStack.blit(POUCH_GUI_TEXTURE, this.leftPos + this.imageWidth, this.topPos + 23 + k * 18, this.imageWidth + 8, 20, 68, 18);
+            poseStack.blit(RenderType::guiTextured, POUCH_GUI_TEXTURE, this.leftPos + this.imageWidth, this.topPos + 23 + k * 18, this.imageWidth + 8, 20, 68, 18, 256, 256);
         }
 
-        poseStack.blit(POUCH_GUI_TEXTURE, this.leftPos + this.imageWidth, this.topPos + 23 + this.grade * 18, this.imageWidth + 8, 38, 68, 23);
-        poseStack.blit(POUCH_GUI_TEXTURE, this.leftPos + this.imageWidth + 1, this.topPos + 5, this.imageWidth + 8 + 48, 104 + 16, 16, 16);
+        poseStack.blit(RenderType::guiTextured, POUCH_GUI_TEXTURE, this.leftPos + this.imageWidth, this.topPos + 23 + this.grade * 18, this.imageWidth + 8, 38, 68, 23, 256, 256);
+        poseStack.blit(RenderType::guiTextured, POUCH_GUI_TEXTURE, this.leftPos + this.imageWidth + 1, this.topPos + 5, this.imageWidth + 8 + 48, 104 + 16, 16, 16, 256, 256);
     }
 
     @Override

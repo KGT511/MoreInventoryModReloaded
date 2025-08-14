@@ -79,17 +79,11 @@ public class PouchRecipe extends CustomRecipe {
             for (int i = 0; i < gradeUpCnt; ++i)
                 pouchInventory.increaseGrade();
         }
-
         return pouch;
     }
 
     @Override
-    public boolean canCraftInDimensions(int width, int height) {
-        return width * height >= 2;
-    }
-
-    @Override
-    public RecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<? extends CustomRecipe> getSerializer() {
         return Recipes.POUCH_RECIPE.get();
     }
 

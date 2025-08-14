@@ -1,8 +1,5 @@
 package moreinventory.core;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import moreinventory.block.Blocks;
 import moreinventory.blockentity.BlockEntities;
 import moreinventory.client.model.ModelLayers;
@@ -38,6 +35,10 @@ import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.network.ChannelBuilder;
 import net.minecraftforge.network.SimpleChannel;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.util.Locale;
 
 @Mod(MoreInventoryMOD.MOD_ID)
 public class MoreInventoryMOD {
@@ -128,4 +129,7 @@ public class MoreInventoryMOD {
         LOGGER.info("server starting");
     }
 
+    public static ResourceLocation prefix(String name) {
+        return ResourceLocation.fromNamespaceAndPath(MOD_ID, name.toLowerCase(Locale.ROOT));
+    }
 }

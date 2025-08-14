@@ -1,16 +1,18 @@
 package moreinventory.client.screen;
 
-import java.util.function.BiConsumer;
-
 import moreinventory.core.MoreInventoryMOD;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
+import java.util.function.BiConsumer;
+
 public class ConfigButton extends AbstractWidget {
-    public static final ResourceLocation POUCH_GUI_TEXTURE = ResourceLocation.fromNamespaceAndPath(MoreInventoryMOD.MOD_ID, "textures/gui/pouch.png");;
+    public static final ResourceLocation POUCH_GUI_TEXTURE = ResourceLocation.fromNamespaceAndPath(MoreInventoryMOD.MOD_ID, "textures/gui/pouch.png");
+    ;
 
     private int iconIndexX, iconIndexY;
     private boolean val;
@@ -19,7 +21,7 @@ public class ConfigButton extends AbstractWidget {
     private BiConsumer<Integer, Integer> sendFunc;
 
     public ConfigButton(int id, int x, int y, int width, int height,
-            int iconX, int iconY, boolean val, Component text, BiConsumer<Integer, Integer> func) {
+                        int iconX, int iconY, boolean val, Component text, BiConsumer<Integer, Integer> func) {
         super(x, y, width, height, text);
         this.id = id;
         this.iconIndexX = iconX;
@@ -37,17 +39,17 @@ public class ConfigButton extends AbstractWidget {
             this.setFocused(mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + this.height);
 
             if (this.val) {
-                poseStack.blit(POUCH_GUI_TEXTURE, x, y, 200, 104, 16, 16);
+                poseStack.blit(RenderType::guiTextured, POUCH_GUI_TEXTURE, x, y, 200, 104, 16, 16, 256, 256);
             } else {
-                poseStack.blit(POUCH_GUI_TEXTURE, x, y, 184, 104, 16, 16);
+                poseStack.blit(RenderType::guiTextured, POUCH_GUI_TEXTURE, x, y, 184, 104, 16, 16, 256, 256);
             }
 
-            poseStack.blit(POUCH_GUI_TEXTURE, x, y, this.iconIndexX, this.iconIndexY, 16, 16);
+            poseStack.blit(RenderType::guiTextured, POUCH_GUI_TEXTURE, x, y, this.iconIndexX, this.iconIndexY, 16, 16, 256, 256);
 
             if (this.val) {
-                poseStack.blit(POUCH_GUI_TEXTURE, x, y, 216, 104, 16, 16);
+                poseStack.blit(RenderType::guiTextured, POUCH_GUI_TEXTURE, x, y, 216, 104, 16, 16, 256, 256);
             } else {
-                poseStack.blit(POUCH_GUI_TEXTURE, x, y, 232, 104, 16, 16);
+                poseStack.blit(RenderType::guiTextured, POUCH_GUI_TEXTURE, x, y, 232, 104, 16, 16, 256, 256);
             }
             //            this.render(poseStack, mouseX, mouseY, partial);
         }
@@ -58,8 +60,8 @@ public class ConfigButton extends AbstractWidget {
     }
 
     @Override
-    public boolean clicked(double mouseX, double mouseY) {
-        if (super.clicked(mouseX, mouseY)) {
+    public boolean isMouseOver(double mouseX, double mouseY) {
+        if (super.isMouseOver(mouseX, mouseY)) {
             this.val = !this.val;
             this.sendFunc.accept(this.id, this.val ? 1 : 0);
             return true;

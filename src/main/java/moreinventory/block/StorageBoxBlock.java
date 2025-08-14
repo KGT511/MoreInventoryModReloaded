@@ -1,11 +1,6 @@
 package moreinventory.block;
 
-import java.lang.reflect.InvocationTargetException;
-
-import javax.annotation.Nullable;
-
 import com.mojang.serialization.MapCodec;
-
 import moreinventory.blockentity.BaseStorageBoxBlockEntity;
 import moreinventory.storagebox.StorageBox;
 import moreinventory.storagebox.StorageBoxType;
@@ -32,27 +27,34 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.BlockHitResult;
 
+import javax.annotation.Nullable;
+import java.lang.reflect.InvocationTargetException;
+
 public class StorageBoxBlock extends BaseEntityBlock {
-    public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     private StorageBoxType type;
 
     //codec
-    public static final MapCodec<StorageBoxBlock> CODEC = simpleCodec((props) -> new StorageBoxBlock(StorageBoxType.WOOD));
+    public static final MapCodec<StorageBoxBlock> CODEC = simpleCodec((props) -> new StorageBoxBlock(props, StorageBoxType.WOOD));
 
-    protected StorageBoxBlock(StorageBoxType typeIn) {
-        super(Properties.of()
-                .sound(SoundType.METAL)
-                .strength(2.0F, 10.0F)
-                .requiresCorrectToolForDrops()
-                .noOcclusion());
+    protected StorageBoxBlock(Properties properties, StorageBoxType typeIn) {
+        super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
         this.type = typeIn;
     }
 
-    @SuppressWarnings("deprecation")
+    public static Properties getDefaultProperties() {
+        return Properties.of()
+                .sound(SoundType.METAL)
+                .strength(2.0F, 10.0F)
+                .requiresCorrectToolForDrops()
+                .noOcclusion();
+    }
+
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
         if (!state.is(newState.getBlock())) {
@@ -73,12 +75,13 @@ public class StorageBoxBlock extends BaseEntityBlock {
     }
 
     @Override
-    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
+    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block blockIn, @Nullable Orientation orientation, boolean isMoving) {
         //隣がコンテナだったときに限って呼ばれるように
         if (blockIn instanceof StorageBoxBlock) {
             var storageBoxBlockEntity = (BaseStorageBoxBlockEntity) level.getBlockEntity(pos);
-            storageBoxBlockEntity.onDestroyedNeighbor(fromPos);
+            storageBoxBlockEntity.onNeighborChanged(pos.relative(orientation.getSide()));
         }
+        //TODO neighborChangedではなくremoveとplace時でよい気がする
     }
 
     @Override
@@ -108,11 +111,11 @@ public class StorageBoxBlock extends BaseEntityBlock {
         try {
             return StorageBox.storageBoxMap.get(type).entityClass.getDeclaredConstructor(BlockPos.class, BlockState.class).newInstance(pos, state);
         } catch (InstantiationException
-                | IllegalAccessException
-                | IllegalArgumentException
-                | InvocationTargetException
-                | NoSuchMethodException
-                | SecurityException e) {
+                 | IllegalAccessException
+                 | IllegalArgumentException
+                 | InvocationTargetException
+                 | NoSuchMethodException
+                 | SecurityException e) {
             e.printStackTrace();
             return new BaseStorageBoxBlockEntity(type, pos, state);
         }

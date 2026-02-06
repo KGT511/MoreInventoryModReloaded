@@ -19,14 +19,14 @@ import moreinventory.recipe.Recipes;
 import moreinventory.storagebox.StorageBox;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.server.ServerStartingEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -41,31 +41,33 @@ import org.apache.logging.log4j.Logger;
 import java.util.Locale;
 
 @Mod(MoreInventoryMOD.MOD_ID)
-public class MoreInventoryMOD {
+public final class MoreInventoryMOD {
     public static final String MOD_ID = "moreinventorymod";
-    private static final Logger LOGGER = LogManager.getLogger();
+    public static final Logger LOGGER = LogManager.getLogger();
     //    public static final SimpleNetworkWrapper network = new SimpleNetworkWrapper(MOD_ID);
     private static final String PROTOCOL_VERSION = "1";
     public static final SimpleChannel CHANNEL = ChannelBuilder.named(ResourceLocation.fromNamespaceAndPath(MOD_ID, "main")).simpleChannel();
 
-    public MoreInventoryMOD() {
+    public MoreInventoryMOD(FMLJavaModLoadingContext context) {
         initNetwork();
-        var eventBus = FMLJavaModLoadingContext.get().getModEventBus();
-        eventBus.addListener(this::setup);
-        eventBus.addListener(this::enqueueIMC);
-        eventBus.addListener(this::processIMC);
-        eventBus.addListener(this::doClientStuff);
+        var modBusGroup = context.getModBusGroup();
+        FMLCommonSetupEvent.getBus(modBusGroup).addListener(this::setup);
+        InterModEnqueueEvent.getBus(modBusGroup).addListener(this::enqueueIMC);
+        InterModProcessEvent.getBus(modBusGroup).addListener(this::processIMC);
+        FMLClientSetupEvent.getBus(modBusGroup).addListener(this::doClientStuff);
 
-        Items.register(eventBus);
-        Blocks.register(eventBus);
-        BlockEntities.register(eventBus);
-        Containers.register(eventBus);
-        Recipes.register(eventBus);
-        MoreInventoryMODCreativeModeTab.register(eventBus);
+        Items.register(modBusGroup);
+        Blocks.register(modBusGroup);
+        BlockEntities.register(modBusGroup);
+        Containers.register(modBusGroup);
+        Recipes.register(modBusGroup);
+        MoreInventoryMODCreativeModeTab.register(modBusGroup);
+        EntityRenderersEvent.RegisterLayerDefinitions.getBus(modBusGroup).addListener(MoreInventoryMOD::registerLayerDefinition);
 
         MinecraftForge.EVENT_BUS.register(this);
     }
 
+    @SubscribeEvent
     private void setup(final FMLCommonSetupEvent event) {
         LOGGER.info("SETUP START");
         MoreInventoryMOD.init();
@@ -93,14 +95,17 @@ public class MoreInventoryMOD {
                 .add();
     }
 
+    @SubscribeEvent
     private void enqueueIMC(final InterModEnqueueEvent event) {
         // some example code to dispatch IMC to another mod
     }
 
+    @SubscribeEvent
     private void processIMC(final InterModProcessEvent event) {
         // some example code to receive and process InterModComms from other mods
     }
 
+    @SubscribeEvent
     private void doClientStuff(final FMLClientSetupEvent event) {
         // do something that can only be done on the client
         //bind renderers and gui factories
@@ -108,7 +113,7 @@ public class MoreInventoryMOD {
         StorageBox.storageBoxMap.forEach((key, val) -> {
             BlockEntityRenderers.register(val.blockEntity, StorageBoxRenderer::new);
         });
-        ItemBlockRenderTypes.setRenderLayer(Blocks.GLASS_STORAGE_BOX.get(), RenderType.translucent());
+        ItemBlockRenderTypes.setRenderLayer(Blocks.GLASS_STORAGE_BOX.get(), ChunkSectionLayer.TRANSLUCENT);
         BlockEntityRenderers.register(BlockEntities.IMPORTER_BLOCK_ENTITY_TYPE.get(), TransportRenderer::new);
         BlockEntityRenderers.register(BlockEntities.EXPORTER_BLOCK_ENTITY_TYPE.get(), TransportRenderer::new);
 
@@ -121,7 +126,7 @@ public class MoreInventoryMOD {
 
     @SubscribeEvent
     public static void registerLayerDefinition(EntityRenderersEvent.RegisterLayerDefinitions event) {
-
+        event.registerLayerDefinition(ModelLayers.TRANSPORTER, TransportRenderer::createBodyLayer);
     }
 
     @SubscribeEvent

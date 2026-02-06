@@ -39,7 +39,7 @@ public class ServerboundImporterUpdatePacket {
 
     public static void handle(ServerboundImporterUpdatePacket msg, CustomPayloadEvent.Context ctx) {
         ctx.enqueueWork(() -> {
-            var blockEntity = ctx.getSender().getCommandSenderWorld().getBlockEntity(msg.blockPos);
+            var blockEntity = ctx.getSender().level().getBlockEntity(msg.blockPos);
             if (blockEntity instanceof ImporterBlockEntity) {
                 var importerBlockEntity = (ImporterBlockEntity) blockEntity;
                 var val = (importerBlockEntity.getValByID(msg.id) + 1) % 2;

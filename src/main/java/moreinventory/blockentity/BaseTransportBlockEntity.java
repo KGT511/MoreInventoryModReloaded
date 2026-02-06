@@ -1,7 +1,5 @@
 package moreinventory.blockentity;
 
-import javax.annotation.Nullable;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup.Provider;
@@ -10,6 +8,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.WorldlyContainer;
@@ -20,9 +19,14 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.IItemHandlerModifiable;
+
+import javax.annotation.Nullable;
 
 public abstract class BaseTransportBlockEntity extends RandomizableContainerBlockEntity implements Container, WorldlyContainer {
 
@@ -44,16 +48,16 @@ public abstract class BaseTransportBlockEntity extends RandomizableContainerBloc
     }
 
     @Override
-    public void loadAdditional(CompoundTag nbt, Provider provider) {
-        super.loadAdditional(nbt, provider);
+    public void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
         this.slotItems = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
-        ContainerHelper.loadAllItems(nbt, this.slotItems, provider);
+        ContainerHelper.loadAllItems(input, this.slotItems);
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound, Provider provider) {
-        super.saveAdditional(compound, provider);
-        ContainerHelper.saveAllItems(compound, this.slotItems, provider);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        ContainerHelper.saveAllItems(output, this.slotItems);
     }
 
     @Override
@@ -85,20 +89,20 @@ public abstract class BaseTransportBlockEntity extends RandomizableContainerBloc
     }
 
     @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt, Provider provider) {
-        this.loadAdditional(pkt.getTag(), provider);
+    public void onDataPacket(Connection net, ValueInput input, Provider provider) {
+        this.loadAdditional(input);
     }
 
     @Override
     public CompoundTag getUpdateTag(Provider provider) {
-        CompoundTag compoundtag = new CompoundTag();
-        this.saveAdditional(compoundtag, provider);
-        return compoundtag;
+        var out = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, provider);
+        this.saveAdditional(out);
+        return out.buildResult();
     }
 
     @Override
-    public void handleUpdateTag(CompoundTag tag, Provider provider) {
-        this.loadAdditional(tag, provider);
+    public void handleUpdateTag(ValueInput input, Provider provider) {
+        this.loadAdditional(input);
     }
 
     @Override
@@ -180,7 +184,7 @@ public abstract class BaseTransportBlockEntity extends RandomizableContainerBloc
 
     @Override
     public int[] getSlotsForFace(Direction p_19238_) {
-        return new int[] {};
+        return new int[]{};
     }
 
     @Override
@@ -198,4 +202,13 @@ public abstract class BaseTransportBlockEntity extends RandomizableContainerBloc
         return false;
     }
 
+    /**
+     * Containerの時に中身が空になるように仕様が変わったため、overrideし処理を行わないようにする。
+     *
+     * @param p_397404_
+     * @param p_395805_
+     */
+    @Override
+    public void preRemoveSideEffects(BlockPos p_397404_, BlockState p_395805_) {
+    }
 }

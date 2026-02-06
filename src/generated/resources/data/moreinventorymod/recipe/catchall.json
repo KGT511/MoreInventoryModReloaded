@@ -2,15 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "C": {
-      "item": "minecraft:chest"
-    },
-    "P": {
-      "tag": "minecraft:planks"
-    },
-    "S": {
-      "tag": "minecraft:wooden_slabs"
-    }
+    "C": "minecraft:chest",
+    "P": "#minecraft:planks",
+    "S": "#minecraft:wooden_slabs"
   },
   "pattern": [
     "P P",

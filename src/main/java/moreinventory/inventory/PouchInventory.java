@@ -1,7 +1,5 @@
 package moreinventory.inventory;
 
-import java.util.List;
-
 import moreinventory.blockentity.BaseStorageBoxBlockEntity;
 import moreinventory.blockentity.storagebox.network.StorageBoxNetworkManager;
 import moreinventory.item.PouchItem;
@@ -15,9 +13,12 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.entity.ContainerUser;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
+
+import java.util.List;
 
 public class PouchInventory implements Container {
 
@@ -30,7 +31,9 @@ public class PouchInventory implements Container {
 
     public enum Val {
         STORAGE_BOX, HOT_BAR, AUTO_COLLECT
-    };
+    }
+
+    ;
 
     private boolean isStorageBox = false;
     private boolean isHotBar = true;
@@ -63,11 +66,11 @@ public class PouchInventory implements Container {
                 return;
             }
             this.slotItems = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
-            ContainerHelper.loadAllItems(nbt, this.slotItems, this.provider);
-            this.isStorageBox = (nbt.contains(isStorageBoxTagKey) ? nbt.getBoolean(isStorageBoxTagKey) : this.isStorageBox);
-            this.isHotBar = (nbt.contains(isHotBarTagKey) ? nbt.getBoolean(isHotBarTagKey) : this.isHotBar);
-            this.isAutoCollect = (nbt.contains(isAutoCollectTagKey) ? nbt.getBoolean(isAutoCollectTagKey) : this.isAutoCollect);
-            this.grade = nbt.getInt(gradeTagKey);
+            MIMUtils.loadAllItems(nbt, this.slotItems, this.provider);
+            this.isStorageBox = (nbt.contains(isStorageBoxTagKey) ? nbt.getBooleanOr(isStorageBoxTagKey, false) : this.isStorageBox);
+            this.isHotBar = (nbt.contains(isHotBarTagKey) ? nbt.getBooleanOr(isHotBarTagKey, false) : this.isHotBar);
+            this.isAutoCollect = (nbt.contains(isAutoCollectTagKey) ? nbt.getBooleanOr(isAutoCollectTagKey, false) : this.isAutoCollect);
+            this.grade = nbt.getIntOr(gradeTagKey, 0);
         }
     }
 
@@ -84,7 +87,7 @@ public class PouchInventory implements Container {
 
     public void writeItemsToNBT(CompoundTag nbt) {
         if (this.usingPouch != null) {
-            ContainerHelper.saveAllItems(nbt, this.slotItems, this.provider);
+            MIMUtils.saveAllItems(nbt, this.slotItems, this.provider);
         }
     }
 
@@ -140,12 +143,12 @@ public class PouchInventory implements Container {
     }
 
     @Override
-    public void startOpen(Player player) {
+    public void startOpen(ContainerUser player) {
         this.readToNBT(this.usingPouch.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag());
     }
 
     @Override
-    public void stopOpen(Player player) {
+    public void stopOpen(ContainerUser player) {
     }
 
     @Override
@@ -266,15 +269,15 @@ public class PouchInventory implements Container {
             return;
         }
         switch (Val.values()[id]) {
-        case STORAGE_BOX:
-            setIsStorageBox(MIMUtils.intToBool(val));
-            break;
-        case HOT_BAR:
-            setIsHotBar(MIMUtils.intToBool(val));
-            break;
-        case AUTO_COLLECT:
-            setIsAutoCollect(MIMUtils.intToBool(val));
-            break;
+            case STORAGE_BOX:
+                setIsStorageBox(MIMUtils.intToBool(val));
+                break;
+            case HOT_BAR:
+                setIsHotBar(MIMUtils.intToBool(val));
+                break;
+            case AUTO_COLLECT:
+                setIsAutoCollect(MIMUtils.intToBool(val));
+                break;
         }
         this.writeValsToNBT();
     }
@@ -284,12 +287,12 @@ public class PouchInventory implements Container {
             return 0;
         }
         switch (Val.values()[id]) {
-        case STORAGE_BOX:
-            return this.getIsStorageBox() ? 1 : 0;
-        case HOT_BAR:
-            return this.getIsHotBar() ? 1 : 0;
-        case AUTO_COLLECT:
-            return this.getIsAUtoCollect() ? 1 : 0;
+            case STORAGE_BOX:
+                return this.getIsStorageBox() ? 1 : 0;
+            case HOT_BAR:
+                return this.getIsHotBar() ? 1 : 0;
+            case AUTO_COLLECT:
+                return this.getIsAUtoCollect() ? 1 : 0;
         }
 
         return 0;

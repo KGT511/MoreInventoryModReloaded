@@ -13,8 +13,8 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.Container;
-import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.BlockItem;
@@ -23,6 +23,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.Block;
@@ -31,12 +32,13 @@ import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.FurnaceBlock;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.function.Consumer;
 
 public class TransporterItem extends Item {
     public static final ArrayList<Block> transportableBlocks = new ArrayList<>();
@@ -69,13 +71,14 @@ public class TransporterItem extends Item {
         transportableBlocks.add(moreinventory.block.Blocks.TIN_STORAGE_BOX.get());
         transportableBlocks.add(moreinventory.block.Blocks.BRONZE_STORAGE_BOX.get());
         transportableBlocks.add(moreinventory.block.Blocks.SILVER_STORAGE_BOX.get());
+        transportableBlocks.add(moreinventory.block.Blocks.STEEL_STORAGE_BOX.get());
         transportableBlocks.add(moreinventory.block.Blocks.GLASS_STORAGE_BOX.get());
     }
 
     @Override
     public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext context) {
         var level = context.getLevel();
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
 
@@ -100,19 +103,19 @@ public class TransporterItem extends Item {
     @Override
     public InteractionResult useOn(UseOnContext context) {
         var level = context.getLevel();
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
 
         var provider = level.registryAccess();
         var itemStack = context.getItemInHand();
-        if (itemStack.has(DataComponents.CUSTOM_DATA) && itemStack.get(DataComponents.CUSTOM_DATA).contains(tagKey)) {
+        if (itemStack.has(DataComponents.CUSTOM_DATA) && itemStack.get(DataComponents.CUSTOM_DATA).copyTag().contains(tagKey)) {
             var nbt = itemStack.get(DataComponents.CUSTOM_DATA);
 
             if (nbt == null) {
                 return InteractionResult.PASS;
             }
-            var containerBlock = ItemStack.parseOptional(provider, nbt.copyTag().getCompound(tagKey));
+            var containerBlock = MIMUtils.parseOptional(provider, nbt.copyTag().getCompound(tagKey).get());
 
             if (containerBlock.isEmpty()) {
                 return InteractionResult.PASS;
@@ -131,25 +134,25 @@ public class TransporterItem extends Item {
 
     @OnlyIn(Dist.CLIENT)
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flagIn) {
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flagIn) {
         if (!stack.has(DataComponents.CUSTOM_DATA)) {
             return;
         }
-        var contents = stack.get(DataComponents.CUSTOM_DATA).copyTag().getCompound(tagKey);
+        var contents = stack.get(DataComponents.CUSTOM_DATA).copyTag().getCompound(tagKey).get();
 
         var provider = context.registries();
-        var hold = ItemStack.parseOptional(provider, contents);
+        var hold = MIMUtils.parseOptional(provider, contents);
         if (hold.getItem() != Items.AIR) {
             var iformattabletextcomponent = hold.getDisplayName().copy();
-            tooltip.add(iformattabletextcomponent.withStyle(ChatFormatting.AQUA));
+            tooltip.accept(iformattabletextcomponent.withStyle(ChatFormatting.AQUA));
         }
         if (hold.getItem() instanceof BlockItem && ((BlockItem) hold.getItem()).getBlock() instanceof StorageBoxBlock) {
             var compoundnbt = stack.get(DataComponents.CUSTOM_DATA).copyTag();
             if (compoundnbt.contains(BaseStorageBoxBlockEntity.tagKeyContents)) {
-                var nbt = compoundnbt.getCompound(BaseStorageBoxBlockEntity.tagKeyContents);
-                var storageContents = ItemStack.parseOptional(provider, nbt);
+                var nbt = compoundnbt.getCompound(BaseStorageBoxBlockEntity.tagKeyContents).get();
+                var storageContents = MIMUtils.parseOptional(provider, nbt);
                 if (!storageContents.isEmpty()) {
-                    var type = StorageBoxType.valueOf(compoundnbt.getString(BaseStorageBoxBlockEntity.tagKeyTypeName));
+                    var type = StorageBoxType.valueOf(compoundnbt.getString(BaseStorageBoxBlockEntity.tagKeyTypeName).get());
                     var storageItems = NonNullList.withSize(BaseStorageBoxBlockEntity.getStorageStackSize(type), ItemStack.EMPTY);
                     MIMUtils.readNonNullListShort(compoundnbt, storageItems, provider);
                     int count = 0;
@@ -160,14 +163,14 @@ public class TransporterItem extends Item {
                     }
                     var iformattabletextcomponent = storageContents.getDisplayName().copy();
                     iformattabletextcomponent.append(" x").append(String.valueOf(count));
-                    tooltip.add(iformattabletextcomponent.withStyle(ChatFormatting.WHITE));
+                    tooltip.accept(iformattabletextcomponent.withStyle(ChatFormatting.WHITE));
                 }
             }
         } else {
             var compoundnbt = stack.get(DataComponents.CUSTOM_DATA).copyTag();
-            if (compoundnbt.contains("Items", 9)) {
+            if (compoundnbt.contains("Items")) {
                 var nonnulllist = NonNullList.withSize(27, ItemStack.EMPTY);
-                ContainerHelper.loadAllItems(compoundnbt, nonnulllist, provider);
+                MIMUtils.loadAllItems(compoundnbt, nonnulllist, provider);
                 int i = 0;
                 int j = 0;
 
@@ -178,13 +181,13 @@ public class TransporterItem extends Item {
                             ++i;
                             var iformattabletextcomponent = itemstack.getDisplayName().copy();
                             iformattabletextcomponent.append(" x").append(String.valueOf(itemstack.getCount()));
-                            tooltip.add(iformattabletextcomponent);
+                            tooltip.accept(iformattabletextcomponent);
                         }
                     }
                 }
 
                 if (j - i > 0) {
-                    tooltip.add((Component.translatable("container.shulkerBox.more", j - i)).withStyle(ChatFormatting.ITALIC));
+                    tooltip.accept((Component.translatable("container.shulkerBox.more", j - i)).withStyle(ChatFormatting.ITALIC));
                 }
             }
         }
@@ -217,7 +220,7 @@ public class TransporterItem extends Item {
 
             var tag = new CompoundTag();
             if (containerBlock != ItemStack.EMPTY) {
-                tag = (CompoundTag) containerBlock.save(provider, tag);
+                tag = MIMUtils.encodeItemStack(provider, containerBlock);
             }
             itemStack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
 
@@ -273,7 +276,8 @@ public class TransporterItem extends Item {
             tag.putInt("x", blockEntity.getBlockPos().getX());
             tag.putInt("y", blockEntity.getBlockPos().getY());
             tag.putInt("z", blockEntity.getBlockPos().getZ());
-            blockEntity.loadCustomOnly(tag, provider);
+            var input = TagValueInput.create(ProblemReporter.DISCARDING, provider, tag);
+            blockEntity.loadCustomOnly(input);
 
             block.setPlacedBy(level, blockEntity.getBlockPos(), blockEntity.getBlockState(), context.getPlayer(), containerBlock);
 
@@ -309,7 +313,7 @@ public class TransporterItem extends Item {
 
     private BlockState readBlockState(UseOnContext context, ItemStack containerBlock) {
         var stack = context.getItemInHand();
-        var blockStateTag = stack.get(DataComponents.CUSTOM_DATA).copyTag().getCompound(blockStateKey);
+        var blockStateTag = stack.get(DataComponents.CUSTOM_DATA).copyTag().getCompound(blockStateKey).get();
 
         var block = Block.byItem(containerBlock.getItem());
         var state = block.getStateForPlacement(new BlockPlaceContext(context));

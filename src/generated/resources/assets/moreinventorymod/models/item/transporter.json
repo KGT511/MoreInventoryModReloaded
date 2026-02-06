@@ -86,9 +86,15 @@
       }
     },
     {
-      "model": "moreinventorymod:item/transporter_storage_box_glass",
+      "model": "moreinventorymod:item/transporter_storage_box_steel",
       "predicate": {
         "minecraft:custom_model_data": 15.0
+      }
+    },
+    {
+      "model": "moreinventorymod:item/transporter_storage_box_glass",
+      "predicate": {
+        "minecraft:custom_model_data": 16.0
       }
     },
     {

@@ -6,13 +6,11 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.eventbus.api.bus.BusGroup;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
 
-@Mod.EventBusSubscriber(modid = MoreInventoryMOD.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
-public class MoreInventoryMODCreativeModeTab {
+public final class MoreInventoryMODCreativeModeTab {
 
     public static final DeferredRegister<CreativeModeTab> MIM_CREATIVE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MoreInventoryMOD.MOD_ID);
 
@@ -29,7 +27,7 @@ public class MoreInventoryMODCreativeModeTab {
             })
             .build());
 
-    public static void register(IEventBus eventBus) {
-        MIM_CREATIVE_TABS.register(eventBus);
+    public static void register(BusGroup modBusGroup) {
+        MIM_CREATIVE_TABS.register(modBusGroup);
     }
 }

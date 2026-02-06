@@ -2,15 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "H": {
-      "item": "minecraft:hopper"
-    },
-    "R": {
-      "item": "minecraft:redstone"
-    },
-    "S": {
-      "item": "minecraft:cobblestone"
-    }
+    "H": "minecraft:hopper",
+    "R": "minecraft:redstone",
+    "S": "minecraft:cobblestone"
   },
   "pattern": [
     "SRS",

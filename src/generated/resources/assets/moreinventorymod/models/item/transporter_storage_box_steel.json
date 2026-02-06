@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "moreinventorymod:item/transporter_storage_box_steel"
+  }
+}

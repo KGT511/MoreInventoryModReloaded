@@ -7,6 +7,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
-public class ModelLayers {
+public final class ModelLayers {
     public static final ModelLayerLocation TRANSPORTER = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(MoreInventoryMOD.MOD_ID, "transport"), "main");
 }

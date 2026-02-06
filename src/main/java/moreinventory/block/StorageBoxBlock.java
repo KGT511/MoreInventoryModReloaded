@@ -6,8 +6,7 @@ import moreinventory.storagebox.StorageBox;
 import moreinventory.storagebox.StorageBoxType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.Container;
-import net.minecraft.world.Containers;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -28,7 +27,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
-import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.BlockHitResult;
 
 import javax.annotation.Nullable;
@@ -56,15 +54,28 @@ public class StorageBoxBlock extends BaseEntityBlock {
     }
 
     @Override
-    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
-        if (!state.is(newState.getBlock())) {
-            var blockEntity = level.getBlockEntity(pos);
-            if (blockEntity instanceof Container && !(newState.getBlock() instanceof StorageBoxBlock)) {
-                Containers.dropContents(level, pos, (Container) blockEntity);
-                level.updateNeighbourForOutputSignal(pos, this);
+    protected boolean shouldChangedStateKeepBlockEntity(BlockState oldState) {
+        return oldState.is(this);
+    }
+
+    /**
+     * 自身が壊されたときに呼ばれる。
+     * var blockEntity = (BaseStorageBoxBlockEntity) level.getBlockEntity(pos);はnullになる。
+     * 自身が壊れたとき、周囲にコンテナがあればそのコンテナのonNeighborChangedを呼ぶ。
+     */
+    @Override
+    protected void affectNeighborsAfterRemoval(BlockState oldState, ServerLevel level, BlockPos pos, boolean moved) {
+        super.affectNeighborsAfterRemoval(oldState, level, pos, moved);
+        level.updateNeighbourForOutputSignal(pos, this);
+
+        for (var d : Direction.values()) {
+            var blockEntity = level.getBlockEntity(pos.relative(d));
+            if (blockEntity instanceof BaseStorageBoxBlockEntity) {
+                var baseStorageBoxBlockEntity = (BaseStorageBoxBlockEntity) blockEntity;
+                baseStorageBoxBlockEntity.onNeighborChanged(pos);
             }
-            super.onRemove(state, level, pos, newState, isMoving);
         }
+        var ho = 0;
     }
 
     @Override
@@ -75,19 +86,9 @@ public class StorageBoxBlock extends BaseEntityBlock {
     }
 
     @Override
-    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block blockIn, @Nullable Orientation orientation, boolean isMoving) {
-        //隣がコンテナだったときに限って呼ばれるように
-        if (blockIn instanceof StorageBoxBlock) {
-            var storageBoxBlockEntity = (BaseStorageBoxBlockEntity) level.getBlockEntity(pos);
-            storageBoxBlockEntity.onNeighborChanged(pos.relative(orientation.getSide()));
-        }
-        //TODO neighborChangedではなくremoveとplace時でよい気がする
-    }
-
-    @Override
     //right click
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        if (level.isClientSide)
+        if (level.isClientSide())
             return InteractionResult.SUCCESS;
 
         var storageBoxBlockEntity = (BaseStorageBoxBlockEntity) level.getBlockEntity(pos);
@@ -99,7 +100,7 @@ public class StorageBoxBlock extends BaseEntityBlock {
     @Override
     //left click
     public void attack(BlockState state, Level level, BlockPos pos, Player player) {
-        if (level.isClientSide)
+        if (level.isClientSide())
             return;
 
         var storageBoxBlockEntity = (BaseStorageBoxBlockEntity) level.getBlockEntity(pos);
@@ -149,7 +150,7 @@ public class StorageBoxBlock extends BaseEntityBlock {
 
     @Nullable
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        return level.isClientSide ? null : createTickerHelper(blockEntityType, StorageBox.storageBoxMap.get(type).blockEntity, BaseStorageBoxBlockEntity::tickFunc);
+        return level.isClientSide() ? null : createTickerHelper(blockEntityType, StorageBox.storageBoxMap.get(type).blockEntity, BaseStorageBoxBlockEntity::tickFunc);
     }
 
     @Override

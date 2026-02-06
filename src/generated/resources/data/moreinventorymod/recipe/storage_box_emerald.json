@@ -2,15 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "M": {
-      "tag": "forge:gems/emerald"
-    },
-    "S": {
-      "tag": "minecraft:wooden_slabs"
-    },
-    "W": {
-      "item": "moreinventorymod:storage_box_wood"
-    }
+    "M": "#forge:gems/emerald",
+    "S": "#minecraft:wooden_slabs",
+    "W": "moreinventorymod:storage_box_wood"
   },
   "pattern": [
     "MSM",

@@ -1,21 +1,32 @@
 package moreinventory.util;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import moreinventory.core.MoreInventoryMOD;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.Container;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomModelData;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import java.util.List;
+import java.util.Optional;
 
 public final class MIMUtils {
     public static int normalIndex(int idx, int size) {
@@ -27,36 +38,118 @@ public final class MIMUtils {
     }
 
     //ItemStackHelperがByteだったため
-    public static CompoundTag writeNonNullListShort(CompoundTag tag, NonNullList<ItemStack> list, Provider provider, boolean saveEmpty) {
-        ListTag listnbt = new ListTag();
+    //net\minecraft\world\ItemStackWithSlot.java:ExtraCodecs.UNSIGNED_BYTE
+    private static final String ITEMS_TAG_KEY = "Items";
+    private static final String SLOT_TAG_KEY = "Slot";
 
-        for (int i = 0; i < list.size(); ++i) {
-            ItemStack itemstack = list.get(i);
-            if (!itemstack.isEmpty()) {
-                CompoundTag compoundnbt = new CompoundTag();
-                compoundnbt.putShort("Slot", (short) i);
-                compoundnbt = (CompoundTag) itemstack.save(provider, compoundnbt);
-                listnbt.add(compoundnbt);
+    public record ItemStackWithSlotInt(int slot, ItemStack stack) {
+        public static final Codec<ItemStackWithSlotInt> CODEC = RecordCodecBuilder.create(inst ->
+                inst.group(
+                        ExtraCodecs.NON_NEGATIVE_INT.fieldOf(SLOT_TAG_KEY).forGetter(ItemStackWithSlotInt::slot),
+                        ItemStack.MAP_CODEC.forGetter(ItemStackWithSlotInt::stack)
+                ).apply(inst, ItemStackWithSlotInt::new)
+        );
+
+        public boolean isValidInContainer(int size) {
+            return slot >= 0 && slot < size;
+        }
+    }
+
+    public static void writeNonNullListInt(ValueOutput out, NonNullList<ItemStack> list, boolean saveEmpty) {
+        var itemsOut = out.list(ITEMS_TAG_KEY, ItemStackWithSlotInt.CODEC);
+
+        for (int i = 0; i < list.size(); i++) {
+            var stack = list.get(i);
+            if (!stack.isEmpty()) {
+                itemsOut.add(new ItemStackWithSlotInt(i, stack));
             }
         }
 
-        if (!listnbt.isEmpty() || saveEmpty) {
-            tag.put("Items", listnbt);
+        if (itemsOut.isEmpty() && !saveEmpty) {
+            out.discard(ITEMS_TAG_KEY);
+        }
+    }
+
+    public static void readNonNullListInt(ValueInput in, NonNullList<ItemStack> list) {
+        for (var e : in.listOrEmpty(ITEMS_TAG_KEY, ItemStackWithSlotInt.CODEC)) {
+            if (e.isValidInContainer(list.size())) {
+                list.set(e.slot(), e.stack());
+            }
+        }
+    }
+
+    public static void readNonNullListShort(CompoundTag tag, NonNullList<ItemStack> list, Provider provider) {
+        ListTag listnbt = tag.getList(ITEMS_TAG_KEY).get();
+
+        for (int i = 0; i < listnbt.size(); ++i) {
+            CompoundTag compoundnbt = listnbt.getCompound(i).get();
+            int j = compoundnbt.getShort(SLOT_TAG_KEY).get();
+            if (j >= 0 && j < list.size()) {
+                list.set(j, parseOptional(provider, compoundnbt));
+            }
+        }
+    }
+
+    /**
+     * ItemStack.parseがなくなったため実装しなおす
+     *
+     * @param p_332204_
+     * @param p_336056_
+     * @return
+     */
+    public static Optional<ItemStack> parse(HolderLookup.Provider p_332204_, Tag p_336056_) {
+        return ItemStack.CODEC.parse(p_332204_.createSerializationContext(NbtOps.INSTANCE), p_336056_)
+                .resultOrPartial(p_327167_ -> MoreInventoryMOD.LOGGER.error("Tried to load invalid item: '{}'", p_327167_));
+    }
+
+    public static ItemStack parseOptional(HolderLookup.Provider p_333870_, CompoundTag p_328391_) {
+        return p_328391_.isEmpty() ? ItemStack.EMPTY : parse(p_333870_, p_328391_).orElse(ItemStack.EMPTY);
+    }
+
+    /**
+     * ContainerHelper.saveAllItemsがCompoundTagではなくValueOutputに変わったため、ここに実装しなおす
+     *
+     * @param tag
+     */
+    public static CompoundTag saveAllItems(CompoundTag tag, NonNullList<ItemStack> items, HolderLookup.Provider provider) {
+        ListTag list = new ListTag();
+
+        for (int slot = 0; slot < items.size(); slot++) {
+            var itemstack = items.get(slot);
+            if (!itemstack.isEmpty()) {
+                var compoundTag = new CompoundTag();
+                compoundTag.putByte(SLOT_TAG_KEY, (byte) slot);
+                list.add(ItemStack.CODEC.encode(itemstack, provider.createSerializationContext(NbtOps.INSTANCE), compoundTag).getOrThrow());
+            }
+        }
+
+        if (!list.isEmpty()) {
+            tag.put(ITEMS_TAG_KEY, list);
         }
 
         return tag;
     }
 
-    public static void readNonNullListShort(CompoundTag tag, NonNullList<ItemStack> list, Provider provider) {
-        ListTag listnbt = tag.getList("Items", 10);
-
-        for (int i = 0; i < listnbt.size(); ++i) {
-            CompoundTag compoundnbt = listnbt.getCompound(i);
-            int j = compoundnbt.getShort("Slot");
-            if (j >= 0 && j < list.size()) {
-                list.set(j, ItemStack.parseOptional(provider, compoundnbt));
+    /**
+     * ContainerHelper.loadAllItemsがCompoundTagではなくValueInputに変わったため、ここに実装しなおす
+     *
+     * @param tag
+     */
+    public static void loadAllItems(CompoundTag tag, NonNullList<ItemStack> items, HolderLookup.Provider provider) {
+        var list = tag.getListOrEmpty(ITEMS_TAG_KEY);
+        for (int i = 0; i < list.size(); i++) {
+            var compoundTag = list.getCompound(i).get();
+            int j = compoundTag.getByte(SLOT_TAG_KEY).get() & 255;
+            if (j >= 0 && j < items.size()) {
+                items.set(j, parse(provider, compoundTag).orElse(ItemStack.EMPTY));
             }
         }
+    }
+
+    public static CompoundTag encodeItemStack(HolderLookup.Provider provider, ItemStack stack) {
+        var ops = provider.createSerializationContext(NbtOps.INSTANCE);
+        DataResult<Tag> encoded = ItemStack.CODEC.encodeStart(ops, stack);
+        return encoded.result().filter(t -> t instanceof CompoundTag).map(t -> (CompoundTag) t).orElseGet(CompoundTag::new);
     }
 
     public static void setIcon(ItemStack s, byte num) {
@@ -147,11 +240,11 @@ public final class MIMUtils {
     }
 
     public static void drawCenteredStringWithoutShadow(GuiGraphics poseStack, Font font, Component string, int x, int y, int color) {
-        poseStack.drawWordWrap(font, FormattedText.of(string.getString()), x - font.width(string) / 2, y, 114, 0);
+        poseStack.drawWordWrap(font, FormattedText.of(string.getString()), x - font.width(string) / 2, y, 114, 0xFF000000 | color, false);
     }
 
     public static void drawStringWithoutShadow(GuiGraphics poseStack, Font font, Component string, int x, int y, int color) {
-        poseStack.drawString(font, string, x, y, color);
+        poseStack.drawString(font, string, x, y, 0xFF000000 | color, false);
 
     }
 }

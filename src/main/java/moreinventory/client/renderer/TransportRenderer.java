@@ -1,11 +1,11 @@
 package moreinventory.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-
 import moreinventory.block.TransportBlock;
 import moreinventory.blockentity.BaseTransportBlockEntity;
 import moreinventory.blockentity.ImporterBlockEntity;
 import moreinventory.client.model.ModelLayers;
+import moreinventory.client.renderer.state.TransportRenderState;
 import moreinventory.core.MoreInventoryMOD;
 import moreinventory.util.MIMUtils;
 import net.minecraft.client.model.geom.ModelPart;
@@ -13,23 +13,29 @@ import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider.Context;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.phys.Vec3;
 
-public class TransportRenderer implements BlockEntityRenderer<BaseTransportBlockEntity> {
+import java.util.EnumMap;
+
+public class TransportRenderer implements BlockEntityRenderer<BaseTransportBlockEntity, TransportRenderState> {
     private static ResourceLocation IMPORTER_LIGHT_TEXTURE = ResourceLocation.fromNamespaceAndPath(MoreInventoryMOD.MOD_ID, "textures/block/importer.png");
     private static ResourceLocation IMPORTER_DARK_TEXTURE = ResourceLocation.fromNamespaceAndPath(MoreInventoryMOD.MOD_ID, "textures/block/importer_black.png");
     private static ResourceLocation EXPORTER_LIGHT_TEXTURE = ResourceLocation.fromNamespaceAndPath(MoreInventoryMOD.MOD_ID, "textures/block/exporter.png");
     private static ResourceLocation EXPORTER_DARK_TEXTURE = ResourceLocation.fromNamespaceAndPath(MoreInventoryMOD.MOD_ID, "textures/block/exporter_black.png");
 
-    private final ModelPart in1;
-    private final ModelPart in2;
     private final ModelPart center;
-    private final ModelPart out;
+    private final EnumMap<Direction, ModelPart> in1ByDir = new EnumMap<>(Direction.class);
+    private final EnumMap<Direction, ModelPart> in2ByDir = new EnumMap<>(Direction.class);
+    private final EnumMap<Direction, ModelPart> outByDir = new EnumMap<>(Direction.class);
 
     private static final String in1Str = "in1";
     private static final String in2Str = "in2";
@@ -37,11 +43,20 @@ public class TransportRenderer implements BlockEntityRenderer<BaseTransportBlock
     private static final String outStr = "out";
 
     public TransportRenderer(Context context) {
-        ModelPart modelpart = context.bakeLayer(ModelLayers.TRANSPORTER);
-        this.in1 = modelpart.getChild(in1Str);
-        this.in2 = modelpart.getChild(in2Str);
+        var modelpart = context.bakeLayer(ModelLayers.TRANSPORTER);
         this.center = modelpart.getChild(centerStr);
-        this.out = modelpart.getChild(outStr);
+        for (var direction : Direction.values()) {
+            var root = context.bakeLayer(ModelLayers.TRANSPORTER);
+            var in1Model = root.getChild(in1Str);
+            var in2Model = root.getChild(in2Str);
+            var outModel = root.getChild(outStr);
+            this.rotateModels(direction, in1Model);
+            this.rotateModels(direction, in2Model);
+            this.rotateModels(direction, outModel);
+            this.in1ByDir.put(direction, in1Model);
+            this.in2ByDir.put(direction, in2Model);
+            this.outByDir.put(direction, outModel);
+        }
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -54,15 +69,32 @@ public class TransportRenderer implements BlockEntityRenderer<BaseTransportBlock
         return LayerDefinition.create(meshDefinition, 64, 64);
     }
 
-    private float degToRad(float deg) {
+    private static float degToRad(float deg) {
         return (float) (deg * Math.PI / 180.);
     }
 
     @Override
-    public void render(BaseTransportBlockEntity blockEntityIn, float partialTicks, PoseStack poseStackIn, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn) {
-        poseStackIn.pushPose();
+    public TransportRenderState createRenderState() {
+        return new TransportRenderState();
+    }
+
+    @Override
+    public void extractRenderState(BaseTransportBlockEntity blockEntity, TransportRenderState renderState, float partialTicks, Vec3 cameraPos, ModelFeatureRenderer.CrumblingOverlay crumbling) {
+        BlockEntityRenderer.super.extractRenderState(blockEntity, renderState, partialTicks, cameraPos, crumbling);
+
+        renderState.isImporter = (blockEntity instanceof ImporterBlockEntity);
+        var state = blockEntity.getBlockState();
+        renderState.inDir = state.getValue(TransportBlock.FACING_IN);
+        renderState.outDir = state.getValue(TransportBlock.FACING_OUT);
+        renderState.emitLevel = (byte) (blockEntity.getLevel().getGameTime() % 40 / 10);
+    }
+
+    @Override
+    public void submit(TransportRenderState renderState, PoseStack pose, SubmitNodeCollector nodeCollector, CameraRenderState cam) {
+        pose.pushPose();
+
         ResourceLocation lightTexture, darkTexture;
-        if (blockEntityIn instanceof ImporterBlockEntity) {
+        if (renderState.isImporter) {
             lightTexture = IMPORTER_LIGHT_TEXTURE;
             darkTexture = IMPORTER_DARK_TEXTURE;
         } else {
@@ -70,54 +102,55 @@ public class TransportRenderer implements BlockEntityRenderer<BaseTransportBlock
             darkTexture = EXPORTER_DARK_TEXTURE;
         }
 
-        var inD = blockEntityIn.getBlockState().getValue(TransportBlock.FACING_IN);
-        var outD = blockEntityIn.getBlockState().getValue(TransportBlock.FACING_OUT);
-        this.rotateModels(inD, in1);
-        this.rotateModels(inD, in2);
-        this.rotateModels(outD.getOpposite(), out);
+        var in1 = this.in1ByDir.get(renderState.inDir);
+        var in2 = this.in2ByDir.get(renderState.inDir);
+        var out = this.outByDir.get(renderState.outDir.getOpposite());
 
-        var emitLevel = (byte) (blockEntityIn.getLevel().getGameTime() % 40 / 10);
+        int emitLevel = renderState.emitLevel;
+        ModelPart[] models = {in1, in2, center, out};
 
-        ModelPart[] models = { in1, in2, center, out };
-        var lightIvertexbuilder = bufferIn.getBuffer(RenderType.entitySolid(lightTexture));
-        models[emitLevel].render(poseStackIn, lightIvertexbuilder, combinedLightIn, combinedOverlayIn);
-        var darkIvertexbuilder = bufferIn.getBuffer(RenderType.entitySolid(darkTexture));
-        for (int i = 0; i < 3; ++i)
-            models[MIMUtils.normalIndex(emitLevel + i + 1, 4)].render(poseStackIn, darkIvertexbuilder, combinedLightIn, combinedOverlayIn);
+        var lightType = RenderType.entitySolid(lightTexture);
+        var darkType = RenderType.entitySolid(darkTexture);
 
-        poseStackIn.popPose();
+        nodeCollector.submitModelPart(models[emitLevel], pose, lightType, renderState.lightCoords, OverlayTexture.NO_OVERLAY, null, -1, renderState.breakProgress);
+        for (int i = 0; i < 3; ++i) {
+            int idx = MIMUtils.normalIndex(emitLevel + i + 1, 4);
+            nodeCollector.submitModelPart(models[idx], pose, darkType, renderState.lightCoords, OverlayTexture.NO_OVERLAY, null, -1, renderState.breakProgress);
+        }
 
+        pose.popPose();
     }
 
     private void rotateModels(Direction side, ModelPart model) {
         switch (side) {
-        case DOWN:
-            model.xRot = degToRad(0);
-            model.zRot = degToRad(0);
-            break;
-        case UP:
-            model.xRot = degToRad(180);
-            model.zRot = degToRad(0);
+            case DOWN:
+                model.xRot = degToRad(0);
+                model.zRot = degToRad(0);
+                break;
 
-            break;
-        case NORTH:
-            model.xRot = degToRad(90);
-            model.zRot = degToRad(0);
+            case UP:
+                model.xRot = degToRad(180);
+                model.zRot = degToRad(0);
+                break;
 
-            break;
-        case SOUTH:
-            model.xRot = degToRad(270);
-            break;
-        case WEST:
-            model.zRot = degToRad(270);
-            model.xRot = degToRad(0);
+            case NORTH:
+                model.xRot = degToRad(90);
+                model.zRot = degToRad(0);
+                break;
 
-            break;
-        case EAST:
-            model.zRot = degToRad(90);
-            model.xRot = degToRad(0);
+            case SOUTH:
+                model.xRot = degToRad(270);
 
-            break;
+                break;
+            case WEST:
+                model.zRot = degToRad(270);
+                model.xRot = degToRad(0);
+                break;
+
+            case EAST:
+                model.zRot = degToRad(90);
+                model.xRot = degToRad(0);
+                break;
         }
     }
 

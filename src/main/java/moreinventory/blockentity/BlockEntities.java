@@ -14,7 +14,7 @@ import moreinventory.blockentity.storagebox.TinStorageBoxBlockEntity;
 import moreinventory.blockentity.storagebox.WoodStorageBoxBlockEntity;
 import moreinventory.core.MoreInventoryMOD;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.bus.BusGroup;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
@@ -22,7 +22,7 @@ import net.minecraftforge.registries.RegistryObject;
 import java.util.Set;
 import java.util.function.Supplier;
 
-public class BlockEntities {
+public final class BlockEntities {
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, MoreInventoryMOD.MOD_ID);
 
     public static final RegistryObject<BlockEntityType<CatchallBlockEntity>> CATCHALL_BLOCK_ENTITY_TYPE = register(
@@ -76,7 +76,7 @@ public class BlockEntities {
         return ret;
     }
 
-    public static void register(IEventBus eventBus) {
-        BLOCK_ENTITIES.register(eventBus);
+    public static void register(BusGroup modBusGroup) {
+        BLOCK_ENTITIES.register(modBusGroup);
     }
 }

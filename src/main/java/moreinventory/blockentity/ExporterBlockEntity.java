@@ -15,7 +15,7 @@ import net.minecraft.world.level.block.state.BlockState;
 public class ExporterBlockEntity extends BaseTransportBlockEntity {
 
     public ExporterBlockEntity(BlockPos pos, BlockState state) {
-        super(BlockEntities.EXPORTER_BLOCK_ENTITY_TYPE.get(), pos, state);
+        super(moreinventory.blockentity.BlockEntities.EXPORTER_BLOCK_ENTITY_TYPE.get(), pos, state);
     }
 
     private BlockPos boxPos = BlockPos.ZERO;
@@ -38,7 +38,8 @@ public class ExporterBlockEntity extends BaseTransportBlockEntity {
         var inventory = HopperBlockEntity.getContainerAt(this.level, outPos);
 
         if (inventory != null) {
-            extract: for (int i = 0; i < 9; i++) {
+            extract:
+            for (int i = 0; i < 9; i++) {
                 var itemstack = slotItems.get(currentSlot);
 
                 if (++currentSlot == 9) {

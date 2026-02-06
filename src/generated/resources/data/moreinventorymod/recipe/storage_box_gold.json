@@ -2,15 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "M": {
-      "tag": "forge:ingots/gold"
-    },
-    "S": {
-      "tag": "minecraft:wooden_slabs"
-    },
-    "W": {
-      "item": "moreinventorymod:storage_box_wood"
-    }
+    "M": "#forge:ingots/gold",
+    "S": "#minecraft:wooden_slabs",
+    "W": "moreinventorymod:storage_box_wood"
   },
   "pattern": [
     "MSM",

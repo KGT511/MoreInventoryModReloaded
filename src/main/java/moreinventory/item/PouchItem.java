@@ -45,7 +45,7 @@ public class PouchItem extends Item {
 
         if (block == Blocks.WATER_CAULDRON) {
 
-            if (level.isClientSide) {
+            if (level.isClientSide()) {
                 return InteractionResult.SUCCESS;
             }
 
@@ -89,7 +89,7 @@ public class PouchItem extends Item {
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
 
-        if (!level.isClientSide && !player.isShiftKeyDown() && hand.equals(InteractionHand.MAIN_HAND))
+        if (!level.isClientSide() && !player.isShiftKeyDown() && hand.equals(InteractionHand.MAIN_HAND))
             player.openMenu(new PouchContainerProvider());
         return InteractionResult.SUCCESS_SERVER;
 

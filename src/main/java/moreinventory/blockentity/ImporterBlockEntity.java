@@ -6,8 +6,6 @@ import moreinventory.blockentity.storagebox.network.IStorageBoxNetwork;
 import moreinventory.container.TransportContainer;
 import moreinventory.util.MIMUtils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup.Provider;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
@@ -15,6 +13,8 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 public class ImporterBlockEntity extends BaseTransportBlockEntity {
     private boolean register = false;
@@ -22,27 +22,29 @@ public class ImporterBlockEntity extends BaseTransportBlockEntity {
 
     public enum Val {
         REGISTER, WHITE
-    };
+    }
+
+    ;
 
     public static final String registerKey = "register";
     public static final String isWhiteKey = "is_white";
 
     public ImporterBlockEntity(BlockPos pos, BlockState state) {
-        super(BlockEntities.IMPORTER_BLOCK_ENTITY_TYPE.get(), pos, state);
+        super(moreinventory.blockentity.BlockEntities.IMPORTER_BLOCK_ENTITY_TYPE.get(), pos, state);
     }
 
     @Override
-    public void loadAdditional(CompoundTag nbt, Provider provider) {
-        super.loadAdditional(nbt, provider);
-        this.register = nbt.getBoolean(registerKey);
-        this.isWhite = nbt.getBoolean(isWhiteKey);
+    public void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        this.register = input.getBooleanOr(registerKey, false);
+        this.isWhite = input.getBooleanOr(isWhiteKey, false);
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound, Provider provider) {
-        super.saveAdditional(compound, provider);
-        compound.putBoolean(registerKey, this.register);
-        compound.putBoolean(isWhiteKey, this.isWhite);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        output.putBoolean(registerKey, this.register);
+        output.putBoolean(isWhiteKey, this.isWhite);
     }
 
     @Override
@@ -139,12 +141,12 @@ public class ImporterBlockEntity extends BaseTransportBlockEntity {
             return;
         }
         switch (Val.values()[id]) {
-        case REGISTER:
-            setIsRegister(MIMUtils.intToBool(val));
-            break;
-        case WHITE:
-            setIsWhite(MIMUtils.intToBool(val));
-            break;
+            case REGISTER:
+                setIsRegister(MIMUtils.intToBool(val));
+                break;
+            case WHITE:
+                setIsWhite(MIMUtils.intToBool(val));
+                break;
         }
 
     }
@@ -154,10 +156,10 @@ public class ImporterBlockEntity extends BaseTransportBlockEntity {
             return 0;
         }
         switch (Val.values()[id]) {
-        case REGISTER:
-            return this.getIsRegister() ? 1 : 0;
-        case WHITE:
-            return this.getIswhite() ? 1 : 0;
+            case REGISTER:
+                return this.getIsRegister() ? 1 : 0;
+            case WHITE:
+                return this.getIswhite() ? 1 : 0;
         }
 
         return 0;

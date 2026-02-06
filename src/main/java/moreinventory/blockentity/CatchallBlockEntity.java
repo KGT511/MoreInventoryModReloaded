@@ -1,7 +1,5 @@
 package moreinventory.blockentity;
 
-import javax.annotation.Nullable;
-
 import moreinventory.block.Blocks;
 import moreinventory.container.CatchallContainer;
 import net.minecraft.core.BlockPos;
@@ -12,6 +10,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -20,13 +19,18 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
+import javax.annotation.Nullable;
+
 public class CatchallBlockEntity extends RandomizableContainerBlockEntity implements WorldlyContainer {
     public CatchallBlockEntity(BlockPos pos, BlockState state) {
-        super(BlockEntities.CATCHALL_BLOCK_ENTITY_TYPE.get(), pos, state);
+        super(moreinventory.blockentity.BlockEntities.CATCHALL_BLOCK_ENTITY_TYPE.get(), pos, state);
     }
 
     public static final int mainInventorySize = 36;
@@ -49,16 +53,16 @@ public class CatchallBlockEntity extends RandomizableContainerBlockEntity implem
     }
 
     @Override
-    public void loadAdditional(CompoundTag nbt, Provider provider) {
-        super.loadAdditional(nbt, provider);
+    public void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
         this.storage = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
-        ContainerHelper.loadAllItems(nbt, this.storage, provider);
+        ContainerHelper.loadAllItems(input, this.storage);
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound, Provider provider) {
-        super.saveAdditional(compound, provider);
-        ContainerHelper.saveAllItems(compound, this.storage, provider);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        ContainerHelper.saveAllItems(output, this.storage);
     }
 
     @Override
@@ -87,20 +91,20 @@ public class CatchallBlockEntity extends RandomizableContainerBlockEntity implem
     }
 
     @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt, Provider provider) {
-        this.loadAdditional(pkt.getTag(), provider);
+    public void onDataPacket(Connection net, ValueInput input, Provider provider) {
+        this.loadAdditional(input);
     }
 
     @Override
     public CompoundTag getUpdateTag(Provider provider) {
-        CompoundTag compoundtag = new CompoundTag();
-        this.saveAdditional(compoundtag, provider);
-        return compoundtag;
+        var out = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, provider);
+        this.saveAdditional(out);
+        return out.buildResult();
     }
 
     @Override
-    public void handleUpdateTag(CompoundTag tag, Provider provider) {
-        this.loadAdditional(tag, provider);
+    public void handleUpdateTag(ValueInput input, Provider provider) {
+        this.loadAdditional(input);
     }
 
     @Override
@@ -199,7 +203,7 @@ public class CatchallBlockEntity extends RandomizableContainerBlockEntity implem
 
     @Override
     public int[] getSlotsForFace(Direction p_19238_) {
-        return new int[] {};
+        return new int[]{};
     }
 
     @Override

@@ -1,5 +1,6 @@
 package moreinventory.blockentity;
 
+import com.mojang.serialization.Codec;
 import moreinventory.block.StorageBoxBlock;
 import moreinventory.blockentity.storagebox.network.IStorageBoxNetwork;
 import moreinventory.blockentity.storagebox.network.StorageBoxNetworkManager;
@@ -17,6 +18,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.Container;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -27,6 +29,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.IItemHandlerModifiable;
@@ -92,32 +97,29 @@ public class BaseStorageBoxBlockEntity extends RandomizableContainerBlockEntity 
         }
     }
 
+    private static final Codec<ItemStack> ITEMSTACK_CODEC = ItemStack.MAP_CODEC.codec();
+
     @Override
-    public void loadAdditional(CompoundTag nbt, Provider provider) {
-        super.loadAdditional(nbt, provider);
+    public void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
 
-        this.type = StorageBoxType.valueOf(nbt.getString(tagKeyTypeName));
+        this.type = StorageBoxType.valueOf(input.getStringOr(tagKeyTypeName, ""));
         this.storageItems = NonNullList.withSize(getStorageStackSize(type), ItemStack.EMPTY);
-        MIMUtils.readNonNullListShort(nbt, this.storageItems, provider);
-        var contentsNBT = nbt.getCompound(tagKeyContents);
-        var tmp = ItemStack.parseOptional(provider, contentsNBT);
-        if (tmp.getItem() == ItemStack.EMPTY.getItem() && tmp.getCount() == ItemStack.EMPTY.getCount()) {
-            this.contents = ItemStack.EMPTY;
-        } else {
-            this.contents = tmp;
-        }
-
+        MIMUtils.readNonNullListInt(input, this.storageItems);
+        this.contents = input.read(tagKeyContents, ITEMSTACK_CODEC).orElse(ItemStack.EMPTY);
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound, Provider provider) {
-        super.saveAdditional(compound, provider);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
 
-        compound.putString(tagKeyTypeName, this.type.name());
-        MIMUtils.writeNonNullListShort(compound, this.storageItems, provider, true);
-        if (!contents.isEmpty()) {
-            var tag = contents.save(provider);
-            compound.put(tagKeyContents, tag);
+        output.putString(tagKeyTypeName, this.type.name());
+        MIMUtils.writeNonNullListInt(output, this.storageItems, true);
+
+        if (!this.contents.isEmpty()) {
+            output.store(tagKeyContents, ITEMSTACK_CODEC, this.contents);
+        } else {
+            output.discard(tagKeyContents);
         }
     }
 
@@ -147,20 +149,20 @@ public class BaseStorageBoxBlockEntity extends RandomizableContainerBlockEntity 
     }
 
     @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt, Provider provider) {
-        this.loadAdditional(pkt.getTag(), provider);
+    public void onDataPacket(Connection net, ValueInput input, Provider provider) {
+        this.loadAdditional(input);
     }
 
     @Override
     public CompoundTag getUpdateTag(Provider provider) {
-        CompoundTag compoundtag = new CompoundTag();
-        this.saveAdditional(compoundtag, provider);
-        return compoundtag;
+        var out = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, provider);
+        this.saveAdditional(out);
+        return out.buildResult();
     }
 
     @Override
-    public void handleUpdateTag(CompoundTag tag, Provider provider) {
-        this.loadAdditional(tag, provider);
+    public void handleUpdateTag(ValueInput input, Provider provider) {
+        this.loadAdditional(input);
     }
 
     @Override
@@ -217,7 +219,7 @@ public class BaseStorageBoxBlockEntity extends RandomizableContainerBlockEntity 
     }
 
     public boolean registerItems(ItemStack stack) {
-        if (stack.has(DataComponents.CUSTOM_DATA) && stack.get(DataComponents.CUSTOM_DATA).contains("Items")) {
+        if (stack.has(DataComponents.CUSTOM_DATA) && stack.get(DataComponents.CUSTOM_DATA).copyTag().contains("Items")) {
             return false;
         }
         if (!hasContents() && stack.getItem() != ItemStack.EMPTY.getItem()) {

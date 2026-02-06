@@ -1,0 +1,131 @@
+{
+  "model": {
+    "type": "minecraft:range_dispatch",
+    "property": "minecraft:custom_model_data",
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "moreinventorymod:item/transporter"
+    },
+    "entries": [
+      {
+        "threshold": 1,
+        "model": {
+          "type": "minecraft:model",
+          "model": "moreinventorymod:item/transporter_chest"
+        }
+      },
+      {
+        "threshold": 2,
+        "model": {
+          "type": "minecraft:model",
+          "model": "moreinventorymod:item/transporter_trapped_chest"
+        }
+      },
+      {
+        "threshold": 3,
+        "model": {
+          "type": "minecraft:model",
+          "model": "moreinventorymod:item/transporter_furnace"
+        }
+      },
+      {
+        "threshold": 4,
+        "model": {
+          "type": "minecraft:model",
+          "model": "moreinventorymod:item/transporter_dispenser"
+        }
+      },
+      {
+        "threshold": 5,
+        "model": {
+          "type": "minecraft:model",
+          "model": "moreinventorymod:item/transporter_dropper"
+        }
+      },
+      {
+        "threshold": 6,
+        "model": {
+          "type": "minecraft:model",
+          "model": "moreinventorymod:item/transporter_storage_box_wood"
+        }
+      },
+      {
+        "threshold": 7,
+        "model": {
+          "type": "minecraft:model",
+          "model": "moreinventorymod:item/transporter_storage_box_iron"
+        }
+      },
+      {
+        "threshold": 8,
+        "model": {
+          "type": "minecraft:model",
+          "model": "moreinventorymod:item/transporter_storage_box_gold"
+        }
+      },
+      {
+        "threshold": 9,
+        "model": {
+          "type": "minecraft:model",
+          "model": "moreinventorymod:item/transporter_storage_box_diamond"
+        }
+      },
+      {
+        "threshold": 10,
+        "model": {
+          "type": "minecraft:model",
+          "model": "moreinventorymod:item/transporter_storage_box_emerald"
+        }
+      },
+      {
+        "threshold": 11,
+        "model": {
+          "type": "minecraft:model",
+          "model": "moreinventorymod:item/transporter_storage_box_copper"
+        }
+      },
+      {
+        "threshold": 12,
+        "model": {
+          "type": "minecraft:model",
+          "model": "moreinventorymod:item/transporter_storage_box_tin"
+        }
+      },
+      {
+        "threshold": 13,
+        "model": {
+          "type": "minecraft:model",
+          "model": "moreinventorymod:item/transporter_storage_box_bronze"
+        }
+      },
+      {
+        "threshold": 14,
+        "model": {
+          "type": "minecraft:model",
+          "model": "moreinventorymod:item/transporter_storage_box_silver"
+        }
+      },
+      {
+        "threshold": 15,
+        "model": {
+          "type": "minecraft:model",
+          "model": "moreinventorymod:item/transporter_storage_box_steel"
+        }
+      },
+      {
+        "threshold": 16,
+        "model": {
+          "type": "minecraft:model",
+          "model": "moreinventorymod:item/transporter_storage_box_glass"
+        }
+      },
+      {
+        "threshold": 99,
+        "model": {
+          "type": "minecraft:model",
+          "model": "moreinventorymod:item/transporter_furnace_lit"
+        }
+      }
+    ]
+  }
+}

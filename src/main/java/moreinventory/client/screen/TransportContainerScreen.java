@@ -10,7 +10,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -64,10 +65,10 @@ public class TransportContainerScreen extends AbstractContainerScreen<TransportC
             var isWhite = importerBlockEntity.getIswhite();
             var registerTxt = Component.translatable(isRegister ? Text.importerRegisterOn : Text.importerRegisterOff);
             var moveTxt = Component.translatable(isWhite ? Text.importerMoveWhite : Text.importerMoveBlack);
-            poseStack.drawCenteredString(this.font, registerTxt, 30 + xOffset, 40 + yOffset, 14737632);
-            poseStack.drawCenteredString(this.font, moveTxt, imageWidth - 30 + xOffset, 40 + yOffset, 14737632);
-            MIMUtils.drawCenteredStringWithoutShadow(poseStack, font, Component.translatable(Text.importerMove), imageWidth - 30 + xOffset, 20 + yOffset, 328965);
-            MIMUtils.drawCenteredStringWithoutShadow(poseStack, font, Component.translatable(Text.importerRegister), 30 + xOffset, 20 + yOffset, 328965);
+            poseStack.drawCenteredString(this.font, registerTxt, 30 + xOffset, 40 + yOffset, 0xFFE0E0E0);
+            poseStack.drawCenteredString(this.font, moveTxt, imageWidth - 30 + xOffset, 40 + yOffset, 0xFFE0E0E0);
+            MIMUtils.drawCenteredStringWithoutShadow(poseStack, font, Component.translatable(Text.importerMove), imageWidth - 30 + xOffset, 20 + yOffset, 0xFF050505);
+            MIMUtils.drawCenteredStringWithoutShadow(poseStack, font, Component.translatable(Text.importerRegister), 30 + xOffset, 20 + yOffset, 0xFF050505);
             isWhiteButton.onValueUpdate(importerBlockEntity);
             isRegisterButton.onValueUpdate(importerBlockEntity);
 
@@ -78,7 +79,7 @@ public class TransportContainerScreen extends AbstractContainerScreen<TransportC
     protected void renderBg(GuiGraphics poseStack, float p_230450_2_, int p_230450_3_, int p_230450_4_) {
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
-        poseStack.blit(RenderType::guiTextured, DISPENSER_GUI_TEXTURE, i, j, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
+        poseStack.blit(RenderPipelines.GUI_TEXTURED, DISPENSER_GUI_TEXTURE, i, j, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
     }
 
     @Override
@@ -119,8 +120,8 @@ public class TransportContainerScreen extends AbstractContainerScreen<TransportC
         }
 
         @Override
-        public void onClick(double mouseX, double mouseY) {
-            super.onClick(mouseX, mouseY);
+        public void onClick(MouseButtonEvent p_426095_, boolean p_428686_) {
+            super.onClick(p_426095_, p_428686_);
         }
 
         private Component getTxt() {

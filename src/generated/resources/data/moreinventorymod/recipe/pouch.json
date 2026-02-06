@@ -2,15 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "D": {
-      "item": "minecraft:diamond"
-    },
-    "L": {
-      "item": "minecraft:leather"
-    },
-    "P": {
-      "item": "moreinventorymod:leather_pack"
-    }
+    "D": "minecraft:diamond",
+    "L": "minecraft:leather",
+    "P": "moreinventorymod:leather_pack"
   },
   "pattern": [
     "LLL",

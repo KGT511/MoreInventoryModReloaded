@@ -4,7 +4,8 @@ import moreinventory.core.MoreInventoryMOD;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
@@ -39,17 +40,17 @@ public class ConfigButton extends AbstractWidget {
             this.setFocused(mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + this.height);
 
             if (this.val) {
-                poseStack.blit(RenderType::guiTextured, POUCH_GUI_TEXTURE, x, y, 200, 104, 16, 16, 256, 256);
+                poseStack.blit(RenderPipelines.GUI_TEXTURED, POUCH_GUI_TEXTURE, x, y, 200, 104, 16, 16, 256, 256);
             } else {
-                poseStack.blit(RenderType::guiTextured, POUCH_GUI_TEXTURE, x, y, 184, 104, 16, 16, 256, 256);
+                poseStack.blit(RenderPipelines.GUI_TEXTURED, POUCH_GUI_TEXTURE, x, y, 184, 104, 16, 16, 256, 256);
             }
 
-            poseStack.blit(RenderType::guiTextured, POUCH_GUI_TEXTURE, x, y, this.iconIndexX, this.iconIndexY, 16, 16, 256, 256);
+            poseStack.blit(RenderPipelines.GUI_TEXTURED, POUCH_GUI_TEXTURE, x, y, this.iconIndexX, this.iconIndexY, 16, 16, 256, 256);
 
             if (this.val) {
-                poseStack.blit(RenderType::guiTextured, POUCH_GUI_TEXTURE, x, y, 216, 104, 16, 16, 256, 256);
+                poseStack.blit(RenderPipelines.GUI_TEXTURED, POUCH_GUI_TEXTURE, x, y, 216, 104, 16, 16, 256, 256);
             } else {
-                poseStack.blit(RenderType::guiTextured, POUCH_GUI_TEXTURE, x, y, 232, 104, 16, 16, 256, 256);
+                poseStack.blit(RenderPipelines.GUI_TEXTURED, POUCH_GUI_TEXTURE, x, y, 232, 104, 16, 16, 256, 256);
             }
             //            this.render(poseStack, mouseX, mouseY, partial);
         }
@@ -60,14 +61,10 @@ public class ConfigButton extends AbstractWidget {
     }
 
     @Override
-    public boolean isMouseOver(double mouseX, double mouseY) {
-        if (super.isMouseOver(mouseX, mouseY)) {
-            this.val = !this.val;
-            this.sendFunc.accept(this.id, this.val ? 1 : 0);
-            return true;
-        }
-        return false;
-
+    public void onClick(MouseButtonEvent e, boolean isDoubleClick) {
+        super.onClick(e, isDoubleClick);
+        this.val = !this.val;
+        this.sendFunc.accept(this.id, this.val ? 1 : 0);
     }
 
     @Override

@@ -1,18 +1,16 @@
 package moreinventory.container;
 
-import java.util.function.Supplier;
-
 import moreinventory.core.MoreInventoryMOD;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraftforge.common.extensions.IForgeMenuType;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.eventbus.api.bus.BusGroup;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
-@Mod.EventBusSubscriber(modid = MoreInventoryMOD.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
-public class Containers {
+import java.util.function.Supplier;
+
+public final class Containers {
     public static final DeferredRegister<MenuType<?>> MENU_TYPES = DeferredRegister.create(ForgeRegistries.MENU_TYPES, MoreInventoryMOD.MOD_ID);
 
     public static final RegistryObject<MenuType<CatchallContainer>> CATCHALL_CONTAINER_TYPE = register(
@@ -29,7 +27,7 @@ public class Containers {
         return ret;
     }
 
-    public static void register(IEventBus eventBus) {
-        MENU_TYPES.register(eventBus);
+    public static void register(BusGroup modBusGroup) {
+        MENU_TYPES.register(modBusGroup);
     }
 }

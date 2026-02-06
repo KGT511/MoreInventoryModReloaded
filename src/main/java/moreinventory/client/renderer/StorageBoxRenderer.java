@@ -2,65 +2,108 @@ package moreinventory.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-
+import it.unimi.dsi.fastutil.HashCommon;
 import moreinventory.block.StorageBoxBlock;
 import moreinventory.blockentity.BaseStorageBoxBlockEntity;
-import net.minecraft.client.Minecraft;
+import moreinventory.client.renderer.state.StorageBoxRenderState;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider.Context;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.item.ItemModelResolver;
+import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemDisplayContext;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 
-public class StorageBoxRenderer implements BlockEntityRenderer<BaseStorageBoxBlockEntity> {
+public class StorageBoxRenderer implements BlockEntityRenderer<BaseStorageBoxBlockEntity, StorageBoxRenderState> {
     private final Font font;
+    private final ItemModelResolver itemModelResolver;
 
     public StorageBoxRenderer(Context context) {
-        font = context.getFont();
+        this.font = context.font();
+        this.itemModelResolver = context.itemModelResolver();
     }
 
     @Override
-    public void render(BaseStorageBoxBlockEntity blockEntityIn, float partialTicks, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn) {
-        var blockstate = blockEntityIn.getBlockState();
-        var contents = blockEntityIn.getContents();
+    public StorageBoxRenderState createRenderState() {
+        return new StorageBoxRenderState();
+    }
 
-        if (contents.getItem() == ItemStack.EMPTY.getItem())
+    @Override
+    public void extractRenderState(BaseStorageBoxBlockEntity blockEntity, StorageBoxRenderState renderState, float partialTicks, Vec3 cameraPos, ModelFeatureRenderer.CrumblingOverlay crumbling) {
+        BlockEntityRenderer.super.extractRenderState(blockEntity, renderState, partialTicks, cameraPos, crumbling);
+        renderState.item.clear();
+        renderState.text = "";
+
+        var state = blockEntity.getBlockState();
+        renderState.yRotDeg = state.getValue(StorageBoxBlock.FACING).toYRot();
+
+        var contents = blockEntity.getContents();
+        renderState.hasItem = !contents.isEmpty();
+        if (contents.isEmpty())
             return;
 
-        matrixStackIn.pushPose();
-        float f = blockstate.getValue(StorageBoxBlock.FACING).toYRot();
-        matrixStackIn.translate(0.5D, 0.5D, 0.5D);
-        matrixStackIn.mulPose(Axis.YP.rotationDegrees(-f));
-        matrixStackIn.translate(0.D, 1.D / 16.D * 2.D, 0.5D);
-        float scale = 0.75F;
-        matrixStackIn.scale(scale, scale, scale);
-        matrixStackIn.mulPose(Axis.XP.rotationDegrees(180.F));
-        matrixStackIn.mulPose(Axis.ZP.rotationDegrees(180.F));
-        Minecraft.getInstance().getItemRenderer().renderStatic(contents, ItemDisplayContext.FIXED, combinedLightIn, combinedOverlayIn, matrixStackIn, bufferIn, blockEntityIn.getLevel(), 0);
-        matrixStackIn.popPose();
+        int seedBase = HashCommon.long2int(blockEntity.getBlockPos().asLong());
+        this.itemModelResolver.updateForTopItem(
+                renderState.item,
+                contents,
+                ItemDisplayContext.FIXED,
+                blockEntity.getLevel(),
+                null,
+                seedBase
+        );
 
-        matrixStackIn.pushPose();
-        matrixStackIn.translate(0.5D, 0.5D, 0.5D);
-        matrixStackIn.mulPose(Axis.YP.rotationDegrees(-f + 180));
-        matrixStackIn.mulPose(Axis.ZP.rotationDegrees(180));
-
-        int amount = blockEntityIn.getAmount();
-        int stackSize = amount / contents.getMaxStackSize();
-        int surplus = amount % contents.getMaxStackSize();
+        int amount = blockEntity.getAmount();
+        int max = contents.getMaxStackSize();
+        int stackSize = max > 0 ? (amount / max) : 0;
+        int surplus = max > 0 ? (amount % max) : amount;
 
         String text = "";
-        if (0 < stackSize)
-            text += "[" + stackSize + "]";
-        if (0 < stackSize && 0 < surplus)
-            text += "+";
-        if (0 < surplus)
-            text += surplus;
-        float textScale = 0.0175F;
-
-        matrixStackIn.translate(-text.length() / 2.D * 2. * (5. + (text.length() % 2 == 0 ? 0.5 : 0)) / 7. / 16., 0.5 - 1.D / 16.D * 3.5D, -0.5001D);
-        matrixStackIn.scale(textScale, textScale, textScale);
-        this.font.drawInBatch(text, 0.F, 0.F, 0xF0F0F0, false, matrixStackIn.last().pose(), bufferIn, Font.DisplayMode.NORMAL, 0, combinedLightIn);
-        matrixStackIn.popPose();
+        if (0 < stackSize) text += "[" + stackSize + "]";
+        if (0 < stackSize && 0 < surplus) text += "+";
+        if (0 < surplus) text += surplus;
+        renderState.text = text;
     }
+
+    @Override
+    public void submit(StorageBoxRenderState renderState, PoseStack pose, SubmitNodeCollector nodeCollector, CameraRenderState cam) {
+        if (!renderState.hasItem)
+            return;
+
+        pose.pushPose();
+        float f = renderState.yRotDeg;
+        pose.translate(0.5D, 0.5D, 0.5D);
+        pose.mulPose(Axis.YP.rotationDegrees(-f));
+        pose.translate(0.0D, 2.0D / 16.0D, 0.5D);
+        float scale = 0.75F;
+        pose.scale(scale, scale, scale);
+        pose.mulPose(Axis.XP.rotationDegrees(180.0F));
+        pose.mulPose(Axis.ZP.rotationDegrees(180.0F));
+        renderState.item.submit(pose, nodeCollector, renderState.lightCoords, OverlayTexture.NO_OVERLAY, 0);
+        pose.popPose();
+
+        if (renderState.text.isEmpty()) {
+            return;
+        }
+
+        pose.pushPose();
+        pose.translate(0.5D, 0.5D, 0.5D);
+        pose.mulPose(Axis.YP.rotationDegrees(-f + 180));
+        pose.mulPose(Axis.ZP.rotationDegrees(180));
+
+        float textScale = 0.0175F;
+        pose.translate(0, 0.5 - 1.D / 16.D * 3.5D, -0.5001D);
+        pose.scale(textScale, textScale, textScale);
+        float x = -this.font.width(renderState.text) / 2.0f;
+        float y = 0.0f;
+        var ftext = Component.literal(renderState.text).getVisualOrderText();
+        nodeCollector.submitText(pose, x, y, ftext, false, Font.DisplayMode.NORMAL, renderState.lightCoords, 0xFFF0F0F0, 0, 0);
+
+        pose.popPose();
+
+    }
+
 }

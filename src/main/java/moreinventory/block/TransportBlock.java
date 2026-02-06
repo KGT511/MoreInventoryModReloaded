@@ -130,7 +130,7 @@ public class TransportBlock extends BaseEntityBlock {
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             var newState = this.rotate(state, level, pos, null);
             level.setBlockAndUpdate(pos, newState);
         }
@@ -138,7 +138,7 @@ public class TransportBlock extends BaseEntityBlock {
 
     @Override
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
         if (!player.isShiftKeyDown()) {
@@ -286,7 +286,7 @@ public class TransportBlock extends BaseEntityBlock {
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
         var blockEntity = isImporter ? BlockEntities.IMPORTER_BLOCK_ENTITY_TYPE : BlockEntities.EXPORTER_BLOCK_ENTITY_TYPE;
-        return level.isClientSide ? null : createTickerHelper(blockEntityType, blockEntity.get(), BaseTransportBlockEntity::tickFunc);
+        return level.isClientSide() ? null : createTickerHelper(blockEntityType, blockEntity.get(), BaseTransportBlockEntity::tickFunc);
     }
 
     @Override

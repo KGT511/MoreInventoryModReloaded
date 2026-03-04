@@ -1,7 +1,5 @@
 package moreinventory.data.lang;
 
-import java.util.HashMap;
-
 import moreinventory.block.Blocks;
 import moreinventory.core.MoreInventoryMOD;
 import moreinventory.core.MoreInventoryMODCreativeModeTab;
@@ -9,7 +7,9 @@ import moreinventory.item.Items;
 import moreinventory.item.PouchItem;
 import net.minecraft.data.PackOutput;
 import net.minecraft.world.item.DyeColor;
-import net.minecraftforge.common.data.LanguageProvider;
+import net.neoforged.neoforge.common.data.LanguageProvider;
+
+import java.util.HashMap;
 
 public class EnUsLanguageGenerator extends LanguageProvider {
     public EnUsLanguageGenerator(PackOutput generator, String modid) {
@@ -17,6 +17,7 @@ public class EnUsLanguageGenerator extends LanguageProvider {
     }
 
     public static final HashMap<DyeColor, String> colorMap = new HashMap<>();
+
     static {
         for (DyeColor color : DyeColor.values()) {
             String name = color.getName();

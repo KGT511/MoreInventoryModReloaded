@@ -1,9 +1,6 @@
 package moreinventory.block;
 
-import java.lang.reflect.InvocationTargetException;
-
-import javax.annotation.Nullable;
-
+import com.mojang.serialization.MapCodec;
 import moreinventory.blockentity.BaseStorageBoxBlockEntity;
 import moreinventory.storagebox.StorageBox;
 import moreinventory.storagebox.StorageBoxType;
@@ -34,9 +31,15 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
+import javax.annotation.Nullable;
+import java.lang.reflect.InvocationTargetException;
+
 public class StorageBoxBlock extends BaseEntityBlock {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     private StorageBoxType type;
+
+    //codec
+    public static final MapCodec<StorageBoxBlock> CODEC = simpleCodec((props) -> new StorageBoxBlock(StorageBoxType.WOOD));
 
     protected StorageBoxBlock(StorageBoxType typeIn) {
         super(Properties.of()
@@ -104,11 +107,11 @@ public class StorageBoxBlock extends BaseEntityBlock {
         try {
             return StorageBox.storageBoxMap.get(type).entityClass.getDeclaredConstructor(BlockPos.class, BlockState.class).newInstance(pos, state);
         } catch (InstantiationException
-                | IllegalAccessException
-                | IllegalArgumentException
-                | InvocationTargetException
-                | NoSuchMethodException
-                | SecurityException e) {
+                 | IllegalAccessException
+                 | IllegalArgumentException
+                 | InvocationTargetException
+                 | NoSuchMethodException
+                 | SecurityException e) {
             e.printStackTrace();
             return new BaseStorageBoxBlockEntity(type, pos, state);
         }
@@ -145,4 +148,8 @@ public class StorageBoxBlock extends BaseEntityBlock {
         return level.isClientSide ? null : createTickerHelper(blockEntityType, StorageBox.storageBoxMap.get(type).blockEntity, BaseStorageBoxBlockEntity::tickFunc);
     }
 
+    @Override
+    protected MapCodec<StorageBoxBlock> codec() {
+        return CODEC;
+    }
 }

@@ -1,9 +1,5 @@
 package moreinventory.blockentity;
 
-import java.lang.reflect.InvocationTargetException;
-
-import javax.annotation.Nullable;
-
 import moreinventory.block.StorageBoxBlock;
 import moreinventory.blockentity.storagebox.network.IStorageBoxNetwork;
 import moreinventory.blockentity.storagebox.network.StorageBoxNetworkManager;
@@ -29,15 +25,14 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandlerModifiable;
+
+import javax.annotation.Nullable;
+import java.lang.reflect.InvocationTargetException;
 
 public class BaseStorageBoxBlockEntity extends RandomizableContainerBlockEntity implements Container, IStorageBoxNetwork, WorldlyContainer {
 
     private ItemStack contents = ItemStack.EMPTY;
     protected NonNullList<ItemStack> storageItems;
-    private LazyOptional<IItemHandlerModifiable> storageHandler;
 
     private StorageBoxNetworkManager networkManager = null;
 
@@ -81,11 +76,11 @@ public class BaseStorageBoxBlockEntity extends RandomizableContainerBlockEntity 
             return blockEntity;
 
         } catch (InstantiationException
-                | IllegalAccessException
-                | IllegalArgumentException
-                | InvocationTargetException
-                | NoSuchMethodException
-                | SecurityException e) {
+                 | IllegalAccessException
+                 | IllegalArgumentException
+                 | InvocationTargetException
+                 | NoSuchMethodException
+                 | SecurityException e) {
             e.printStackTrace();
             return new BaseStorageBoxBlockEntity(to, this.getBlockPos(), this.getBlockState());
         }
@@ -135,11 +130,6 @@ public class BaseStorageBoxBlockEntity extends RandomizableContainerBlockEntity 
     }
 
     @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-        return LazyOptional.empty();
-    }
-
-    @Override
     public ClientboundBlockEntityDataPacket getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
     }
@@ -164,8 +154,6 @@ public class BaseStorageBoxBlockEntity extends RandomizableContainerBlockEntity 
     @Override
     public void setRemoved() {
         super.setRemoved();
-        if (storageHandler != null)
-            storageHandler.invalidate();
     }
 
     @Override
@@ -306,33 +294,33 @@ public class BaseStorageBoxBlockEntity extends RandomizableContainerBlockEntity 
 
     public boolean rightClickEvent(Level level, Player player) {
         switch (++clickCount) {
-        case 1:
-            clickTime = 16;
-            var itemstack = player.getMainHandItem();
-            if (!hasContents()) {
-                registerItems(itemstack);
-            }
+            case 1:
+                clickTime = 16;
+                var itemstack = player.getMainHandItem();
+                if (!hasContents()) {
+                    registerItems(itemstack);
+                }
 
-            if (player.isShiftKeyDown()) {
-                clearRegister();
-            }
+                if (player.isShiftKeyDown()) {
+                    clearRegister();
+                }
 
-            store(itemstack);
+                store(itemstack);
 
-            break;
-        case 2:
-            storeItemInInventory(player.getInventory());
-            player.tick();
-            break;
-        case 3:
-            clickCount = 0;
+                break;
+            case 2:
+                storeItemInInventory(player.getInventory());
+                player.tick();
+                break;
+            case 3:
+                clickCount = 0;
 
-            getStorageBoxNetworkManager().storeInventoryToNetwork(player.getInventory(), this.worldPosition);
-            player.tick();
-            break;
-        default:
-            clickCount = 0;
-            break;
+                getStorageBoxNetworkManager().storeInventoryToNetwork(player.getInventory(), this.worldPosition);
+                player.tick();
+                break;
+            default:
+                clickCount = 0;
+                break;
         }
 
         return true;
@@ -485,7 +473,7 @@ public class BaseStorageBoxBlockEntity extends RandomizableContainerBlockEntity 
 
     @Override
     public int[] getSlotsForFace(Direction p_19238_) {
-        return new int[] {};
+        return new int[]{};
     }
 
     @Override

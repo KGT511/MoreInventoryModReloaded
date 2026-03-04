@@ -43,6 +43,5 @@
     "recipes": [
       "moreinventorymod:exporter"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

@@ -1,6 +1,7 @@
 package moreinventory.data;
 
 import moreinventory.block.Blocks;
+import moreinventory.recipe.PouchRecipe;
 import moreinventory.recipe.Recipes;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
@@ -15,7 +16,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.common.Tags;
+import net.neoforged.neoforge.common.Tags;
 
 public class RecipesGenerator extends RecipeProvider {
     public RecipesGenerator(PackOutput generatorIn) {
@@ -120,8 +121,7 @@ public class RecipesGenerator extends RecipeProvider {
                 .unlockedBy("has_leather_pack", has(moreinventory.item.Items.LEATHER_PACK.get()))
                 .save(consumer);
 
-        SpecialRecipeBuilder.special(Recipes.POUCH_RECIPE.get())
-                .save(consumer, Recipes.POUCH_RECIPE.getId().getPath());
+        SpecialRecipeBuilder.special(PouchRecipe::new).save(consumer, Recipes.POUCH_RECIPE.getId().toString());
 
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, moreinventory.item.Items.BRUSH.get(), 4)
                 .pattern(" WW")

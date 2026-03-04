@@ -30,6 +30,5 @@
     "recipes": [
       "moreinventorymod:leather_pack"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

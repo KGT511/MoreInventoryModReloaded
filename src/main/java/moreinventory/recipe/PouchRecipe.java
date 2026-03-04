@@ -12,6 +12,7 @@ import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.common.Tags;
 
 public class PouchRecipe extends CustomRecipe {
 
@@ -33,7 +34,7 @@ public class PouchRecipe extends CustomRecipe {
                 if (itemStack.getItem() instanceof PouchItem) {
                     pouch = itemStack;
                     ++pouchCnt;
-                } else if (itemStack.is(net.minecraftforge.common.Tags.Items.DYES)) {
+                } else if (itemStack.is(Tags.Items.DYES)) {
                     ++dyeCnt;
                 } else if (itemStack.getItem() == Items.ENDER_PEARL) {
                     ++enderPearlCnt;

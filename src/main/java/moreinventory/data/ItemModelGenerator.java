@@ -1,22 +1,22 @@
 package moreinventory.data;
 
-import java.util.Locale;
-
 import moreinventory.block.Blocks;
 import moreinventory.core.MoreInventoryMOD;
 import moreinventory.item.Items;
 import moreinventory.item.PouchItem;
 import moreinventory.item.TransporterItem;
 import moreinventory.storagebox.StorageBox;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.client.model.generators.ItemModelBuilder;
-import net.minecraftforge.client.model.generators.ItemModelProvider;
-import net.minecraftforge.common.data.ExistingFileHelper;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.client.model.generators.ItemModelBuilder;
+import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
+
+import java.util.Locale;
 
 public class ItemModelGenerator extends ItemModelProvider {
     public ItemModelGenerator(PackOutput generator, ExistingFileHelper existingFileHelper) {
@@ -47,7 +47,7 @@ public class ItemModelGenerator extends ItemModelProvider {
     }
 
     public static String name(Item item) {
-        return ForgeRegistries.ITEMS.getKey(item).getPath();
+        return BuiltInRegistries.ITEM.getKey(item).getPath();
     }
 
     private void toBlock(Block b) {

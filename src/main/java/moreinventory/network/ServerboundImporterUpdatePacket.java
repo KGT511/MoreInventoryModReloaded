@@ -3,51 +3,46 @@ package moreinventory.network;
 import moreinventory.blockentity.ImporterBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.event.network.CustomPayloadEvent;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.PlayPayloadContext;
 
-public class ServerboundImporterUpdatePacket {
-    private final BlockPos blockPos;
-    private final int id;
-    private final int val;
-
-    public ServerboundImporterUpdatePacket(BlockPos pos, int id, int val) {
-        this.blockPos = pos;
-        this.id = id;
-        this.val = val;
-    }
+public record ServerboundImporterUpdatePacket(BlockPos blockPos, int optionId, int val) implements CustomPacketPayload {
+    public static final ResourceLocation ID = new ResourceLocation("moreinventorymod", "serverbound_importer_update");
 
     public ServerboundImporterUpdatePacket(BlockPos pos, int id) {
-        this.blockPos = pos;
-        this.id = id;
-        this.val = -1;
+        this(pos, id, -1);
     }
 
     public ServerboundImporterUpdatePacket(FriendlyByteBuf buffer) {
         this(buffer.readBlockPos(), buffer.readInt(), buffer.readInt());
     }
 
-    public static ServerboundImporterUpdatePacket decode(FriendlyByteBuf buffer) {
-        var packet = new ServerboundImporterUpdatePacket(buffer);
-        return packet;
+    @Override
+    public ResourceLocation id() {
+        return ID;
     }
 
-    public static void encode(ServerboundImporterUpdatePacket msg, FriendlyByteBuf buffer) {
-        buffer.writeBlockPos(msg.blockPos);
-        buffer.writeInt(msg.id);
-        buffer.writeInt(msg.val);
+    @Override
+    public void write(FriendlyByteBuf buffer) {
+        buffer.writeBlockPos(blockPos());
+        buffer.writeInt(optionId());
+        buffer.writeInt(val());
     }
 
-    public static void handle(ServerboundImporterUpdatePacket msg, CustomPayloadEvent.Context ctx) {
-        ctx.enqueueWork(() -> {
-            var blockEntity = ctx.getSender().getCommandSenderWorld().getBlockEntity(msg.blockPos);
+    public static void handle(ServerboundImporterUpdatePacket msg, PlayPayloadContext ctx) {
+        ctx.workHandler().execute(() -> {
+            var player = ctx.player().orElse(null);
+            if (player == null) {
+                return;
+            }
+            var blockEntity = player.getCommandSenderWorld().getBlockEntity(msg.blockPos());
             if (blockEntity instanceof ImporterBlockEntity) {
                 var importerBlockEntity = (ImporterBlockEntity) blockEntity;
-                var val = (importerBlockEntity.getValByID(msg.id) + 1) % 2;
-                importerBlockEntity.setValByID(msg.id, val);
+                var val = (importerBlockEntity.getValByID(msg.optionId()) + 1) % 2;
+                importerBlockEntity.setValByID(msg.optionId(), val);
             }
         });
-
-        ctx.setPacketHandled(true);
     }
 
 }

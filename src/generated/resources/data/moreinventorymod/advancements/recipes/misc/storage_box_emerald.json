@@ -30,6 +30,5 @@
     "recipes": [
       "moreinventorymod:storage_box_emerald"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

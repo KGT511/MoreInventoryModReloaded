@@ -2,11 +2,9 @@ package moreinventory.client.screen;
 
 import moreinventory.blockentity.ImporterBlockEntity;
 import moreinventory.container.TransportContainer;
-import moreinventory.core.MoreInventoryMOD;
 import moreinventory.data.lang.Text;
 import moreinventory.network.ServerboundImporterUpdatePacket;
 import moreinventory.util.MIMUtils;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -14,9 +12,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 @OnlyIn(Dist.CLIENT)
 public class TransportContainerScreen extends AbstractContainerScreen<TransportContainer> {
@@ -101,7 +100,7 @@ public class TransportContainerScreen extends AbstractContainerScreen<TransportC
 
         protected Button(int x, int y, Component trueDisplayTxt, Component falseDisplayTxt, BlockPos blockPos, int id) {
             super(x, y, 53, 20, Component.empty(), (p) -> {
-                MoreInventoryMOD.CHANNEL.send(new ServerboundImporterUpdatePacket(blockPos, id), Minecraft.getInstance().getConnection().getConnection());
+                PacketDistributor.SERVER.noArg().send(new ServerboundImporterUpdatePacket(blockPos, id));
             });
             this.trueTxt = trueDisplayTxt;
             this.falseTxt = falseDisplayTxt;

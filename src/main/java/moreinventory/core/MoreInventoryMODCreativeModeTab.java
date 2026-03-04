@@ -6,17 +6,16 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
-@Mod.EventBusSubscriber(modid = MoreInventoryMOD.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
+import java.util.function.Supplier;
+
 public class MoreInventoryMODCreativeModeTab {
 
     public static final DeferredRegister<CreativeModeTab> MIM_CREATIVE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MoreInventoryMOD.MOD_ID);
 
-    public static final RegistryObject<CreativeModeTab> MULTI_ENDER_CHEST_CREATIVE_TAB = MIM_CREATIVE_TABS.register("", () -> CreativeModeTab.builder()
+    public static final Supplier<CreativeModeTab> MULTI_ENDER_CHEST_CREATIVE_TAB = MIM_CREATIVE_TABS.register("", () -> CreativeModeTab.builder()
             .title(Component.translatable("itemGroup." + MoreInventoryMOD.MOD_ID))
             .icon(() -> new ItemStack(Blocks.CATCHALL.get()))
             .displayItems((fearture, output) -> {

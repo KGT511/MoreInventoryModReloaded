@@ -1,5 +1,6 @@
 package moreinventory.block;
 
+import com.mojang.serialization.MapCodec;
 import moreinventory.blockentity.CatchallBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -36,6 +37,9 @@ public class CatchallBlock extends BaseEntityBlock {
     protected static final VoxelShape insideShape = Block.box(1.0D, 1.0D, 1.0D, 15.0D, 12.0D, 15.0D);
     protected static final VoxelShape renderShape = Block.box(0.0D, 0.0D, 0.0D, 16.0D, 12.0D, 16.0D);
     protected static final VoxelShape shape = Shapes.join(renderShape, insideShape, BooleanOp.ONLY_FIRST);
+
+    //codec
+    public static final MapCodec<CatchallBlock> CODEC = simpleCodec((props) -> new CatchallBlock());
 
     public CatchallBlock() {
         super(Properties.of()
@@ -119,5 +123,10 @@ public class CatchallBlock extends BaseEntityBlock {
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new CatchallBlockEntity(pos, state);
+    }
+
+    @Override
+    protected MapCodec<CatchallBlock> codec() {
+        return CODEC;
     }
 }

@@ -1,8 +1,5 @@
 package moreinventory.core;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import moreinventory.block.Blocks;
 import moreinventory.blockentity.BlockEntities;
 import moreinventory.client.model.ModelLayers;
@@ -24,36 +21,31 @@ import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.client.ForgeHooksClient;
-import net.minecraftforge.client.event.EntityRenderersEvent;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.server.ServerStartingEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
-import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.network.ChannelBuilder;
-import net.minecraftforge.network.SimpleChannel;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.fml.event.lifecycle.InterModEnqueueEvent;
+import net.neoforged.fml.event.lifecycle.InterModProcessEvent;
+import net.neoforged.neoforge.client.ClientHooks;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlerEvent;
+import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 @Mod(MoreInventoryMOD.MOD_ID)
 public class MoreInventoryMOD {
     public static final String MOD_ID = "moreinventorymod";
     private static final Logger LOGGER = LogManager.getLogger();
-    //    public static final SimpleNetworkWrapper network = new SimpleNetworkWrapper(MOD_ID);
-    private static final String PROTOCOL_VERSION = "1";
-    public static final SimpleChannel CHANNEL = ChannelBuilder.named(new ResourceLocation(MOD_ID, "main")).simpleChannel();
 
-    public MoreInventoryMOD() {
-        initNetwork();
-        var eventBus = FMLJavaModLoadingContext.get().getModEventBus();
+    public MoreInventoryMOD(IEventBus eventBus) {
         eventBus.addListener(this::setup);
         eventBus.addListener(this::enqueueIMC);
         eventBus.addListener(this::processIMC);
         eventBus.addListener(this::doClientStuff);
+        eventBus.addListener(MoreInventoryMOD::registerPayloadHandlers);
 
         Items.register(eventBus);
         Blocks.register(eventBus);
@@ -62,7 +54,7 @@ public class MoreInventoryMOD {
         Recipes.register(eventBus);
         MoreInventoryMODCreativeModeTab.register(eventBus);
 
-        MinecraftForge.EVENT_BUS.register(this);
+        NeoForge.EVENT_BUS.register(this);
     }
 
     private void setup(final FMLCommonSetupEvent event) {
@@ -78,18 +70,10 @@ public class MoreInventoryMOD {
         SpannerItem.setRotatableBlocks();
     }
 
-    public static void initNetwork() {
-        var id = 0;
-        CHANNEL.messageBuilder(ServerboundImporterUpdatePacket.class, id++)
-                .encoder(ServerboundImporterUpdatePacket::encode)
-                .decoder(ServerboundImporterUpdatePacket::decode)
-                .consumerMainThread(ServerboundImporterUpdatePacket::handle)
-                .add();
-        CHANNEL.messageBuilder(ServerboundPouchUpdatePacket.class, id++)
-                .encoder(ServerboundPouchUpdatePacket::encode)
-                .decoder(ServerboundPouchUpdatePacket::decode)
-                .consumerMainThread(ServerboundPouchUpdatePacket::handle)
-                .add();
+    private static void registerPayloadHandlers(RegisterPayloadHandlerEvent event) {
+        var registrar = event.registrar(MOD_ID).versioned("1");
+        registrar.play(ServerboundImporterUpdatePacket.ID, ServerboundImporterUpdatePacket::new, handler -> handler.server(ServerboundImporterUpdatePacket::handle));
+        registrar.play(ServerboundPouchUpdatePacket.ID, ServerboundPouchUpdatePacket::new, handler -> handler.server(ServerboundPouchUpdatePacket::handle));
     }
 
     private void enqueueIMC(final InterModEnqueueEvent event) {
@@ -115,12 +99,7 @@ public class MoreInventoryMOD {
         MenuScreens.register(Containers.TRANSPORT_CONTAINER_TYPE.get(), TransportContainerScreen::new);
         MenuScreens.register(Containers.POUCH_CONTAINER_TYPE.get(), PouchContainerScreen::new);
 
-        ForgeHooksClient.registerLayerDefinition(ModelLayers.TRANSPORTER, TransportRenderer::createBodyLayer);
-    }
-
-    @SubscribeEvent
-    public static void registerLayerDefinition(EntityRenderersEvent.RegisterLayerDefinitions event) {
-
+        ClientHooks.registerLayerDefinition(ModelLayers.TRANSPORTER, TransportRenderer::createBodyLayer);
     }
 
     @SubscribeEvent

@@ -1,18 +1,17 @@
 package moreinventory.client.screen;
 
 import moreinventory.container.PouchContainer;
-import moreinventory.core.MoreInventoryMOD;
 import moreinventory.data.lang.Text;
 import moreinventory.inventory.PouchInventory;
 import moreinventory.network.ServerboundPouchUpdatePacket;
 import moreinventory.util.HoverChecker;
 import moreinventory.util.MIMUtils;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 public class PouchContainerScreen extends AbstractContainerScreen<PouchContainer> {
     private static final ResourceLocation POUCH_GUI_TEXTURE = ConfigButton.POUCH_GUI_TEXTURE;
@@ -44,7 +43,7 @@ public class PouchContainerScreen extends AbstractContainerScreen<PouchContainer
         this.isStorageBoxButton = new ConfigButton(PouchInventory.Val.STORAGE_BOX.ordinal(),
                 0, 0, 16, 16, 184, 120, inventory.getIsStorageBox(), Component.empty(),
                 (id, val) -> {
-                    MoreInventoryMOD.CHANNEL.send(new ServerboundPouchUpdatePacket(id, val), Minecraft.getInstance().getConnection().getConnection());
+                    PacketDistributor.SERVER.noArg().send(new ServerboundPouchUpdatePacket(id, val));
                 });
         this.isStorageBoxButton.setX(this.leftPos + this.imageWidth + 6);
         this.isStorageBoxButton.setY(this.topPos + 25 + this.grade * 18);
@@ -52,7 +51,7 @@ public class PouchContainerScreen extends AbstractContainerScreen<PouchContainer
         this.isHotBarButton = new ConfigButton(PouchInventory.Val.HOT_BAR.ordinal(),
                 0, 0, 16, 16, 200, 120, inventory.getIsHotBar(), Component.empty(),
                 (id, val) -> {
-                    MoreInventoryMOD.CHANNEL.send(new ServerboundPouchUpdatePacket(id, val), Minecraft.getInstance().getConnection().getConnection());
+                    PacketDistributor.SERVER.noArg().send(new ServerboundPouchUpdatePacket(id, val));
                 });
         this.isHotBarButton.setX(this.leftPos + this.imageWidth + 24);
         this.isHotBarButton.setY(this.isStorageBoxButton.getY());
@@ -60,7 +59,7 @@ public class PouchContainerScreen extends AbstractContainerScreen<PouchContainer
         this.isAutoCollectButton = new ConfigButton(PouchInventory.Val.AUTO_COLLECT.ordinal(),
                 0, 0, 16, 16, 216, 120, inventory.getIsAUtoCollect(), Component.empty(),
                 (id, val) -> {
-                    MoreInventoryMOD.CHANNEL.send(new ServerboundPouchUpdatePacket(id, val), Minecraft.getInstance().getConnection().getConnection());
+                    PacketDistributor.SERVER.noArg().send(new ServerboundPouchUpdatePacket(id, val));
                 });
         this.isAutoCollectButton.setX(this.leftPos + this.imageWidth + 42);
         this.isAutoCollectButton.setY(this.isStorageBoxButton.getY());

@@ -1,7 +1,5 @@
 package moreinventory.blockentity;
 
-import javax.annotation.Nullable;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -19,15 +17,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandlerModifiable;
+
+import javax.annotation.Nullable;
 
 public abstract class BaseTransportBlockEntity extends RandomizableContainerBlockEntity implements Container, WorldlyContainer {
 
     public static final int inventorySize = 9;
     protected NonNullList<ItemStack> slotItems = NonNullList.withSize(inventorySize, ItemStack.EMPTY);
-    private LazyOptional<IItemHandlerModifiable> storageHandler;
 
     public int currentSlot = 0;
 
@@ -74,11 +70,6 @@ public abstract class BaseTransportBlockEntity extends RandomizableContainerBloc
     }
 
     @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-        return LazyOptional.empty();
-    }
-
-    @Override
     public ClientboundBlockEntityDataPacket getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
     }
@@ -103,8 +94,6 @@ public abstract class BaseTransportBlockEntity extends RandomizableContainerBloc
     @Override
     public void setRemoved() {
         super.setRemoved();
-        if (storageHandler != null)
-            storageHandler.invalidate();
     }
 
     @Override
@@ -179,7 +168,7 @@ public abstract class BaseTransportBlockEntity extends RandomizableContainerBloc
 
     @Override
     public int[] getSlotsForFace(Direction p_19238_) {
-        return new int[] {};
+        return new int[]{};
     }
 
     @Override

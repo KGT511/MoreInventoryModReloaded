@@ -30,6 +30,5 @@
     "recipes": [
       "moreinventorymod:plating_copper"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

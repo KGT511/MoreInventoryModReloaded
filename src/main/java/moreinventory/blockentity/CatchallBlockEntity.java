@@ -1,7 +1,5 @@
 package moreinventory.blockentity;
 
-import javax.annotation.Nullable;
-
 import moreinventory.block.Blocks;
 import moreinventory.container.CatchallContainer;
 import net.minecraft.core.BlockPos;
@@ -19,9 +17,8 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandlerModifiable;
+
+import javax.annotation.Nullable;
 
 public class CatchallBlockEntity extends RandomizableContainerBlockEntity implements WorldlyContainer {
     public CatchallBlockEntity(BlockPos pos, BlockState state) {
@@ -35,7 +32,6 @@ public class CatchallBlockEntity extends RandomizableContainerBlockEntity implem
     public static final int inventorySize = mainInventorySize + offHandInventorySize;
 
     private NonNullList<ItemStack> storage = NonNullList.withSize(inventorySize, ItemStack.EMPTY);
-    private LazyOptional<IItemHandlerModifiable> storageHandler;
 
     @Override
     public int getContainerSize() {
@@ -76,11 +72,6 @@ public class CatchallBlockEntity extends RandomizableContainerBlockEntity implem
     }
 
     @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-        return LazyOptional.empty();
-    }
-
-    @Override
     public ClientboundBlockEntityDataPacket getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
     }
@@ -105,8 +96,6 @@ public class CatchallBlockEntity extends RandomizableContainerBlockEntity implem
     @Override
     public void setRemoved() {
         super.setRemoved();
-        if (storageHandler != null)
-            storageHandler.invalidate();
     }
 
     @Override
@@ -198,7 +187,7 @@ public class CatchallBlockEntity extends RandomizableContainerBlockEntity implem
 
     @Override
     public int[] getSlotsForFace(Direction p_19238_) {
-        return new int[] {};
+        return new int[]{};
     }
 
     @Override

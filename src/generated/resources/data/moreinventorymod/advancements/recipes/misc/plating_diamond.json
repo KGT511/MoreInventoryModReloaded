@@ -30,6 +30,5 @@
     "recipes": [
       "moreinventorymod:plating_diamond"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

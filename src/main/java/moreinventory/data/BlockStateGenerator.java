@@ -1,10 +1,5 @@
 package moreinventory.data;
 
-import java.util.function.Function;
-import java.util.function.Supplier;
-
-import javax.annotation.Nonnull;
-
 import moreinventory.block.Blocks;
 import moreinventory.block.CatchallBlock;
 import moreinventory.block.TransportBlock;
@@ -12,17 +7,21 @@ import moreinventory.core.MoreInventoryMOD;
 import moreinventory.storagebox.StorageBox;
 import moreinventory.storagebox.StorageBoxType;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraftforge.client.model.generators.BlockModelBuilder;
-import net.minecraftforge.client.model.generators.BlockStateProvider;
-import net.minecraftforge.client.model.generators.ConfiguredModel;
-import net.minecraftforge.client.model.generators.ModelBuilder.FaceRotation;
-import net.minecraftforge.common.data.ExistingFileHelper;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
+import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
+import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
+import net.neoforged.neoforge.client.model.generators.ModelBuilder.FaceRotation;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
+
+import javax.annotation.Nonnull;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class BlockStateGenerator extends BlockStateProvider {
 
@@ -48,7 +47,7 @@ public class BlockStateGenerator extends BlockStateProvider {
     }
 
     public static String name(Block block) {
-        return ForgeRegistries.BLOCKS.getKey(block).getPath();
+        return BuiltInRegistries.BLOCK.getKey(block).getPath();
     }
 
     private void registerCatchallBlock(Block block, ResourceLocation texture) {
@@ -56,11 +55,11 @@ public class BlockStateGenerator extends BlockStateProvider {
             var builder = models().getBuilder(name(block));
             models().cubeAll(name(block), texture);
             int[][][] fromToArr = {
-                    { { 0, 0, 0 }, { 1, 12, 16 } },
-                    { { 1, 0, 0 }, { 15, 12, 1 } },
-                    { { 15, 0, 0 }, { 16, 12, 16 } },
-                    { { 1, 0, 15 }, { 15, 12, 16 } },
-                    { { 1, 0, 1 }, { 15, 0, 15 } },
+                    {{0, 0, 0}, {1, 12, 16}},
+                    {{1, 0, 0}, {15, 12, 1}},
+                    {{15, 0, 0}, {16, 12, 16}},
+                    {{1, 0, 15}, {15, 12, 16}},
+                    {{1, 0, 1}, {15, 0, 15}},
             };
             for (var fromTo : fromToArr) {
                 var element = builder.element().from(fromTo[0][0], fromTo[0][1], fromTo[0][2]).to(fromTo[1][0], fromTo[1][1], fromTo[1][2]);
@@ -118,28 +117,28 @@ public class BlockStateGenerator extends BlockStateProvider {
         var normalBuilder = makeImporterBuilder.apply("");
         var downEastBuilder = makeImporterBuilder.apply("_down_east");
         var downNorthBuilder = makeImporterBuilder.apply("_down_north");
-        BlockModelBuilder[] importerBuilders = { normalBuilder, downEastBuilder, downNorthBuilder };
+        BlockModelBuilder[] importerBuilders = {normalBuilder, downEastBuilder, downNorthBuilder};
 
         int[][][] fromToArrBlackCommon = {
-                { { 2, 0, 2 }, { 14, 1, 14 } },
-                { { 4, 1, 4 }, { 12, 2, 12 } } };
+                {{2, 0, 2}, {14, 1, 14}},
+                {{4, 1, 4}, {12, 2, 12}}};
         int[][][][] fromToArrBlack = {
                 {
-                        { { 5, 11, 5 }, { 11, 12, 11 } },
-                        { { 4, 12, 4 }, { 12, 13, 12 } },
-                        { { 6, 13, 6 }, { 10, 14, 10 } } },
+                        {{5, 11, 5}, {11, 12, 11}},
+                        {{4, 12, 4}, {12, 13, 12}},
+                        {{6, 13, 6}, {10, 14, 10}}},
                 {
-                        { { 11, 5, 5 }, { 12, 11, 11 } },
-                        { { 12, 4, 4 }, { 13, 12, 12 } },
-                        { { 13, 6, 6 }, { 14, 10, 10 } } },
+                        {{11, 5, 5}, {12, 11, 11}},
+                        {{12, 4, 4}, {13, 12, 12}},
+                        {{13, 6, 6}, {14, 10, 10}}},
                 {
-                        { { 5, 5, 4 }, { 11, 11, 5 } },
-                        { { 4, 4, 3 }, { 12, 12, 4 } },
-                        { { 6, 6, 2 }, { 10, 10, 3 } } } };
+                        {{5, 5, 4}, {11, 11, 5}},
+                        {{4, 4, 3}, {12, 12, 4}},
+                        {{6, 6, 2}, {10, 10, 3}}}};
         int[][][][] fromToArrBlue = {
-                { { { 7, 14, 7 }, { 9, 16, 9 } } },
-                { { { 14, 7, 7 }, { 16, 9, 9 } } },
-                { { { 7, 7, 0 }, { 9, 9, 2 } } } };
+                {{{7, 14, 7}, {9, 16, 9}}},
+                {{{14, 7, 7}, {16, 9, 9}}},
+                {{{7, 7, 0}, {9, 9, 2}}}};
         for (var builder : importerBuilders) {
             for (var fromTo : fromToArrBlackCommon) {
                 var element = builder.element().from(fromTo[0][0], fromTo[0][1], fromTo[0][2]).to(fromTo[1][0], fromTo[1][1], fromTo[1][2]);
@@ -234,7 +233,7 @@ public class BlockStateGenerator extends BlockStateProvider {
         var exporterName = name(Blocks.EXPORTER.get());
         var makeExporterBuilder = (Function<String, BlockModelBuilder>) (str) -> {
             return models().withExistingParent("block/" + exporterName + "/" + exporterName + str,
-                    new ResourceLocation(MoreInventoryMOD.MOD_ID, "block/" + importerName + "/" + importerName + str))
+                            new ResourceLocation(MoreInventoryMOD.MOD_ID, "block/" + importerName + "/" + importerName + str))
                     .texture("all", texture(exporterName + "_black"))
                     .texture("blue", texture(exporterName))
                     .texture("black", black_texture);
@@ -243,7 +242,7 @@ public class BlockStateGenerator extends BlockStateProvider {
         var downEastExporterBuilder = makeExporterBuilder.apply("_down_east");
         var downNorthExporterBuilder = makeExporterBuilder.apply("_down_north");
 
-        BlockModelBuilder[] exporterBuilders = { normalExporterBuilder, downEastExporterBuilder, downNorthExporterBuilder };
+        BlockModelBuilder[] exporterBuilders = {normalExporterBuilder, downEastExporterBuilder, downNorthExporterBuilder};
         getVariantBuilder(Blocks.EXPORTER.get()).forAllStates(state -> ConfiguredModel.builder()
                 .modelFile(exporterBuilders[getBuilderIndexFromState.apply(state)])
                 .rotationX(getRotationX.apply(state))

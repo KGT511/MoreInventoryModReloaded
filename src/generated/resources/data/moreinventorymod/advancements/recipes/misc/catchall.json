@@ -30,6 +30,5 @@
     "recipes": [
       "moreinventorymod:catchall"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

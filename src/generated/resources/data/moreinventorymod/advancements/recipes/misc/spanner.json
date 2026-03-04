@@ -43,6 +43,5 @@
     "recipes": [
       "moreinventorymod:spanner"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

@@ -3,7 +3,7 @@
   "category": "misc",
   "key": {
     "M": {
-      "tag": "forge:gems/emerald"
+      "tag": "c:gems/emerald"
     },
     "S": {
       "tag": "minecraft:wooden_slabs"
@@ -19,6 +19,6 @@
   ],
   "result": {
     "count": 3,
-    "item": "moreinventorymod:storage_box_emerald"
+    "id": "moreinventorymod:storage_box_emerald"
   }
 }

@@ -100,7 +100,7 @@ public class TransportContainerScreen extends AbstractContainerScreen<TransportC
 
         protected Button(int x, int y, Component trueDisplayTxt, Component falseDisplayTxt, BlockPos blockPos, int id) {
             super(x, y, 53, 20, Component.empty(), (p) -> {
-                PacketDistributor.SERVER.noArg().send(new ServerboundImporterUpdatePacket(blockPos, id));
+                PacketDistributor.sendToServer(new ServerboundImporterUpdatePacket(blockPos, id));
             });
             this.trueTxt = trueDisplayTxt;
             this.falseTxt = falseDisplayTxt;

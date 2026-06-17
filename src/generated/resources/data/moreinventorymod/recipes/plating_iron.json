@@ -6,7 +6,7 @@
       "item": "moreinventorymod:brush"
     },
     "I": {
-      "tag": "forge:ingots/iron"
+      "tag": "c:ingots/iron"
     },
     "M": {
       "item": "minecraft:lava_bucket"
@@ -18,6 +18,7 @@
     "   "
   ],
   "result": {
-    "item": "moreinventorymod:plating_iron"
+    "count": 1,
+    "id": "moreinventorymod:plating_iron"
   }
 }

@@ -3,6 +3,7 @@ package moreinventory.data;
 import moreinventory.block.Blocks;
 import moreinventory.recipe.PouchRecipe;
 import moreinventory.recipe.Recipes;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
@@ -18,9 +19,11 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.common.Tags;
 
+import java.util.concurrent.CompletableFuture;
+
 public class RecipesGenerator extends RecipeProvider {
-    public RecipesGenerator(PackOutput generatorIn) {
-        super(generatorIn);
+    public RecipesGenerator(PackOutput generatorIn, CompletableFuture<HolderLookup.Provider> provider) {
+        super(generatorIn, provider);
     }
 
     @Override

@@ -1,20 +1,23 @@
 package moreinventory.inventory;
 
-import java.util.List;
-
 import moreinventory.blockentity.BaseStorageBoxBlockEntity;
 import moreinventory.blockentity.storagebox.network.StorageBoxNetworkManager;
 import moreinventory.item.PouchItem;
 import moreinventory.util.MIMUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
+
+import java.util.List;
 
 public class PouchInventory implements Container {
 
@@ -27,7 +30,7 @@ public class PouchInventory implements Container {
 
     public enum Val {
         STORAGE_BOX, HOT_BAR, AUTO_COLLECT
-    };
+    }
 
     private boolean isStorageBox = false;
     private boolean isHotBar = true;
@@ -41,14 +44,17 @@ public class PouchInventory implements Container {
 
     public Component customName;
 
+    private Provider provider;
+
     public PouchInventory(Player player, ItemStack itemStack) {
-        this.usingPouch = itemStack;
-        this.customName = itemStack.getDisplayName();
-        this.readToNBT(this.usingPouch.getOrCreateTag());
+        this(player.level().registryAccess(), itemStack);
     }
 
-    public PouchInventory(ItemStack itemStack) {
-        this(null, itemStack);
+    public PouchInventory(Provider provider, ItemStack itemStack) {
+        this.usingPouch = itemStack;
+        this.customName = itemStack.getDisplayName();
+        this.provider = provider;
+        this.readToNBT(this.usingPouch.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag());
     }
 
     public void readToNBT(CompoundTag nbt) {
@@ -57,7 +63,7 @@ public class PouchInventory implements Container {
                 return;
             }
             this.slotItems = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
-            ContainerHelper.loadAllItems(nbt, this.slotItems);
+            ContainerHelper.loadAllItems(nbt, this.slotItems, this.provider);
             this.isStorageBox = (nbt.contains(isStorageBoxTagKey) ? nbt.getBoolean(isStorageBoxTagKey) : this.isStorageBox);
             this.isHotBar = (nbt.contains(isHotBarTagKey) ? nbt.getBoolean(isHotBarTagKey) : this.isHotBar);
             this.isAutoCollect = (nbt.contains(isAutoCollectTagKey) ? nbt.getBoolean(isAutoCollectTagKey) : this.isAutoCollect);
@@ -71,17 +77,21 @@ public class PouchInventory implements Container {
     }
 
     public void writeItemsToNBT() {
-        this.writeItemsToNBT(this.usingPouch.getOrCreateTag());
+        var tag = this.usingPouch.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        this.writeItemsToNBT(tag);
+        this.usingPouch.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
     public void writeItemsToNBT(CompoundTag nbt) {
         if (this.usingPouch != null) {
-            ContainerHelper.saveAllItems(nbt, this.slotItems);
+            ContainerHelper.saveAllItems(nbt, this.slotItems, this.provider);
         }
     }
 
     public void writeValsToNBT() {
-        this.writeValsToNBT(this.usingPouch.getOrCreateTag());
+        var tag = this.usingPouch.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        this.writeValsToNBT(tag);
+        this.usingPouch.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
     public void writeValsToNBT(CompoundTag nbt) {
@@ -131,7 +141,7 @@ public class PouchInventory implements Container {
 
     @Override
     public void startOpen(Player player) {
-        this.readToNBT(this.usingPouch.getOrCreateTag());
+        this.readToNBT(this.usingPouch.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag());
     }
 
     @Override
@@ -158,10 +168,20 @@ public class PouchInventory implements Container {
         return this.grade;
     }
 
+    /**
+     * ポーチ内のアイテムのリストを返す
+     *
+     * @return
+     */
     public List<ItemStack> getInventorySlotItems() {
         return this.slotItems.subList(0, slotSize);
     }
 
+    /**
+     * 収集設定のリストを返す
+     *
+     * @return
+     */
     public List<ItemStack> getCollectableSlotItems() {
         return this.slotItems.subList(slotSize, this.getContainerSize());
     }
@@ -192,7 +212,7 @@ public class PouchInventory implements Container {
         this.setChanged();
     }
 
-    public void collectAllItemStack(Container inventory, boolean flag) {
+    public void collectAllItemStack(Player player, Container inventory, boolean flag) {
         int origin = (isHotBar ? 0 : 9);
 
         for (int i = origin; i < inventory.getContainerSize(); i++) {
@@ -202,9 +222,9 @@ public class PouchInventory implements Container {
                 continue;
 
             if (itemStack.getItem() instanceof PouchItem) {
-                var pouch = new PouchInventory(itemStack);
+                var pouch = new PouchInventory(player, itemStack);
                 if (pouch.isAutoCollect && flag && itemStack != this.usingPouch) {
-                    pouch.collectAllItemStack(inventory, false);
+                    pouch.collectAllItemStack(player, inventory, false);
                 }
             } else {
                 if (isCollectableItem(itemStack)) {
@@ -256,15 +276,15 @@ public class PouchInventory implements Container {
             return;
         }
         switch (Val.values()[id]) {
-        case STORAGE_BOX:
-            setIsStorageBox(MIMUtils.intToBool(val));
-            break;
-        case HOT_BAR:
-            setIsHotBar(MIMUtils.intToBool(val));
-            break;
-        case AUTO_COLLECT:
-            setIsAutoCollect(MIMUtils.intToBool(val));
-            break;
+            case STORAGE_BOX:
+                setIsStorageBox(MIMUtils.intToBool(val));
+                break;
+            case HOT_BAR:
+                setIsHotBar(MIMUtils.intToBool(val));
+                break;
+            case AUTO_COLLECT:
+                setIsAutoCollect(MIMUtils.intToBool(val));
+                break;
         }
         this.writeValsToNBT();
     }
@@ -274,12 +294,12 @@ public class PouchInventory implements Container {
             return 0;
         }
         switch (Val.values()[id]) {
-        case STORAGE_BOX:
-            return this.getIsStorageBox() ? 1 : 0;
-        case HOT_BAR:
-            return this.getIsHotBar() ? 1 : 0;
-        case AUTO_COLLECT:
-            return this.getIsAUtoCollect() ? 1 : 0;
+            case STORAGE_BOX:
+                return this.getIsStorageBox() ? 1 : 0;
+            case HOT_BAR:
+                return this.getIsHotBar() ? 1 : 0;
+            case AUTO_COLLECT:
+                return this.getIsAUtoCollect() ? 1 : 0;
         }
 
         return 0;
@@ -299,7 +319,7 @@ public class PouchInventory implements Container {
             for (int i = 0; i < size; ++i) {
                 var item = inventory.getItem(i);
 
-                if (item != null && item.getItem() == itemstack.getItem() && itemstack.getDamageValue() == item.getDamageValue() && ItemStack.isSameItemSameTags(itemstack, item)) {
+                if (item != null && item.getItem() == itemstack.getItem() && itemstack.getDamageValue() == item.getDamageValue() && ItemStack.isSameItemSameComponents(itemstack, item)) {
                     if (MIMUtils.canAccessFromSide(inventory, i, side) && MIMUtils.canInsertFromSide(inventory, itemstack, i, side)) {
                         int sum = item.getCount() + itemstack.getCount();
 

@@ -3,7 +3,7 @@
   "category": "misc",
   "key": {
     "M": {
-      "tag": "forge:ingots/iron"
+      "tag": "c:ingots/iron"
     },
     "S": {
       "tag": "minecraft:wooden_slabs"
@@ -19,6 +19,6 @@
   ],
   "result": {
     "count": 3,
-    "item": "moreinventorymod:storage_box_iron"
+    "id": "moreinventorymod:storage_box_iron"
   }
 }

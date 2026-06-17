@@ -17,7 +17,6 @@ import moreinventory.network.ServerboundImporterUpdatePacket;
 import moreinventory.network.ServerboundPouchUpdatePacket;
 import moreinventory.recipe.Recipes;
 import moreinventory.storagebox.StorageBox;
-import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
@@ -29,9 +28,10 @@ import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.event.lifecycle.InterModEnqueueEvent;
 import net.neoforged.fml.event.lifecycle.InterModProcessEvent;
 import net.neoforged.neoforge.client.ClientHooks;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.network.event.RegisterPayloadHandlerEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -46,6 +46,7 @@ public class MoreInventoryMOD {
         eventBus.addListener(this::processIMC);
         eventBus.addListener(this::doClientStuff);
         eventBus.addListener(MoreInventoryMOD::registerPayloadHandlers);
+        eventBus.addListener(MoreInventoryMOD::registerMenuScreens);
 
         Items.register(eventBus);
         Blocks.register(eventBus);
@@ -70,10 +71,16 @@ public class MoreInventoryMOD {
         SpannerItem.setRotatableBlocks();
     }
 
-    private static void registerPayloadHandlers(RegisterPayloadHandlerEvent event) {
+    private static void registerPayloadHandlers(RegisterPayloadHandlersEvent event) {
         var registrar = event.registrar(MOD_ID).versioned("1");
-        registrar.play(ServerboundImporterUpdatePacket.ID, ServerboundImporterUpdatePacket::new, handler -> handler.server(ServerboundImporterUpdatePacket::handle));
-        registrar.play(ServerboundPouchUpdatePacket.ID, ServerboundPouchUpdatePacket::new, handler -> handler.server(ServerboundPouchUpdatePacket::handle));
+        registrar.playToServer(ServerboundImporterUpdatePacket.TYPE, ServerboundImporterUpdatePacket.STREAM_CODEC, ServerboundImporterUpdatePacket::handle);
+        registrar.playToServer(ServerboundPouchUpdatePacket.TYPE, ServerboundPouchUpdatePacket.STREAM_CODEC, ServerboundPouchUpdatePacket::handle);
+    }
+
+    private static void registerMenuScreens(RegisterMenuScreensEvent event) {
+        event.register(Containers.CATCHALL_CONTAINER_TYPE.get(), CatchallContainerScreen::new);
+        event.register(Containers.TRANSPORT_CONTAINER_TYPE.get(), TransportContainerScreen::new);
+        event.register(Containers.POUCH_CONTAINER_TYPE.get(), PouchContainerScreen::new);
     }
 
     private void enqueueIMC(final InterModEnqueueEvent event) {
@@ -94,10 +101,6 @@ public class MoreInventoryMOD {
         ItemBlockRenderTypes.setRenderLayer(Blocks.GLASS_STORAGE_BOX.get(), RenderType.translucent());
         BlockEntityRenderers.register(BlockEntities.IMPORTER_BLOCK_ENTITY_TYPE.get(), TransportRenderer::new);
         BlockEntityRenderers.register(BlockEntities.EXPORTER_BLOCK_ENTITY_TYPE.get(), TransportRenderer::new);
-
-        MenuScreens.register(Containers.CATCHALL_CONTAINER_TYPE.get(), CatchallContainerScreen::new);
-        MenuScreens.register(Containers.TRANSPORT_CONTAINER_TYPE.get(), TransportContainerScreen::new);
-        MenuScreens.register(Containers.POUCH_CONTAINER_TYPE.get(), PouchContainerScreen::new);
 
         ClientHooks.registerLayerDefinition(ModelLayers.TRANSPORTER, TransportRenderer::createBodyLayer);
     }

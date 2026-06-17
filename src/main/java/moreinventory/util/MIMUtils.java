@@ -3,7 +3,9 @@ package moreinventory.util;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
@@ -11,6 +13,7 @@ import net.minecraft.network.chat.FormattedText;
 import net.minecraft.world.Container;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomModelData;
 
 public final class MIMUtils {
     public static int normalIndex(int idx, int size) {
@@ -22,7 +25,7 @@ public final class MIMUtils {
     }
 
     //ItemStackHelperがByteだったため
-    public static CompoundTag writeNonNullListShort(CompoundTag tag, NonNullList<ItemStack> list, boolean saveEmpty) {
+    public static CompoundTag writeNonNullListShort(CompoundTag tag, NonNullList<ItemStack> list, Provider provider, boolean saveEmpty) {
         ListTag listnbt = new ListTag();
 
         for (int i = 0; i < list.size(); ++i) {
@@ -30,7 +33,7 @@ public final class MIMUtils {
             if (!itemstack.isEmpty()) {
                 CompoundTag compoundnbt = new CompoundTag();
                 compoundnbt.putShort("Slot", (short) i);
-                itemstack.save(compoundnbt);
+                compoundnbt = (CompoundTag) itemstack.save(provider, compoundnbt);
                 listnbt.add(compoundnbt);
             }
         }
@@ -42,23 +45,20 @@ public final class MIMUtils {
         return tag;
     }
 
-    public static void readNonNullListShort(CompoundTag tag, NonNullList<ItemStack> list) {
+    public static void readNonNullListShort(CompoundTag tag, NonNullList<ItemStack> list, Provider provider) {
         ListTag listnbt = tag.getList("Items", 10);
 
         for (int i = 0; i < listnbt.size(); ++i) {
             CompoundTag compoundnbt = listnbt.getCompound(i);
             int j = compoundnbt.getShort("Slot");
             if (j >= 0 && j < list.size()) {
-                list.set(j, ItemStack.of(compoundnbt));
+                list.set(j, ItemStack.parseOptional(provider, compoundnbt));
             }
         }
     }
 
     public static void setIcon(ItemStack s, byte num) {
-        final String key = "CustomModelData";
-        CompoundTag tag = s.getOrCreateTag();
-        tag.putByte(key, (byte) num);
-        s.setTag(tag);
+        s.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(num));
     }
 
     public static boolean intToBool(int val) {
@@ -101,7 +101,7 @@ public final class MIMUtils {
             for (int i = 0; i < size; ++i) {
                 ItemStack item = inventory.getItem(i);
 
-                if (item != null && item.getItem() == itemstack.getItem() && itemstack.getDamageValue() == item.getDamageValue() && ItemStack.isSameItemSameTags(itemstack, item)) {
+                if (item != null && item.getItem() == itemstack.getItem() && itemstack.getDamageValue() == item.getDamageValue() && ItemStack.isSameItemSameComponents(itemstack, item)) {
                     if (canAccessFromSide(inventory, i, side) && canInsertFromSide(inventory, itemstack, i, side)) {
                         int sum = item.getCount() + itemstack.getCount();
 

@@ -16,22 +16,22 @@ public class GlassStorageBoxBlockEntity extends BaseStorageBoxBlockEntity {
     @Override
     public boolean rightClickEvent(Level level, Player player) {
         switch (++clickCount) {
-        case 1:
-            clickTime = 16;
-            return false;
+            case 1:
+                clickTime = 16;
+                return false;
 
-        case 2:
-            return false;
+            case 2:
+                return false;
 
-        case 3:
-            clickCount = 0;
+            case 3:
+                clickCount = 0;
 
-            getStorageBoxNetworkManager().storeInventoryToNetwork(player.getInventory(), this.worldPosition);
-            player.tick();
-            break;
-        default:
-            clickCount = 0;
-            break;
+                getStorageBoxNetworkManager().storeInventoryToNetwork(player, player.getInventory(), this.worldPosition);
+                player.tick();
+                break;
+            default:
+                clickCount = 0;
+                break;
         }
 
         return true;

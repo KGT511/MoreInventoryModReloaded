@@ -4,6 +4,7 @@ import moreinventory.block.Blocks;
 import moreinventory.container.CatchallContainer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.Connection;
@@ -44,16 +45,16 @@ public class CatchallBlockEntity extends RandomizableContainerBlockEntity implem
     }
 
     @Override
-    public void load(CompoundTag nbt) {
-        super.load(nbt);
+    public void loadAdditional(CompoundTag nbt, HolderLookup.Provider provider) {
+        super.loadAdditional(nbt, provider);
         this.storage = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
-        ContainerHelper.loadAllItems(nbt, this.storage);
+        ContainerHelper.loadAllItems(nbt, this.storage, provider);
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound) {
-        super.saveAdditional(compound);
-        ContainerHelper.saveAllItems(compound, this.storage);
+    protected void saveAdditional(CompoundTag compound, HolderLookup.Provider provider) {
+        super.saveAdditional(compound, provider);
+        ContainerHelper.saveAllItems(compound, this.storage, provider);
     }
 
     @Override
@@ -77,20 +78,20 @@ public class CatchallBlockEntity extends RandomizableContainerBlockEntity implem
     }
 
     @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
-        this.load(pkt.getTag());
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt, HolderLookup.Provider provider) {
+        this.loadAdditional(pkt.getTag(), provider);
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
+    public CompoundTag getUpdateTag(HolderLookup.Provider provider) {
         CompoundTag compoundtag = new CompoundTag();
-        this.saveAdditional(compoundtag);
+        this.saveAdditional(compoundtag, provider);
         return compoundtag;
     }
 
     @Override
-    public void handleUpdateTag(CompoundTag tag) {
-        this.load(tag);
+    public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider provider) {
+        this.loadAdditional(tag, provider);
     }
 
     @Override

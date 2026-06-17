@@ -5,14 +5,14 @@ import moreinventory.blockentity.BaseStorageBoxBlockEntity;
 import moreinventory.storagebox.StorageBoxType;
 import moreinventory.util.MIMUtils;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.Component;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.InteractionResult;
@@ -22,19 +22,19 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.FurnaceBlock;
-import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,6 +75,7 @@ public class TransporterItem extends Item {
             return InteractionResult.SUCCESS;
         }
 
+        var provider = level.registryAccess();
         var blockPos = context.getClickedPos();
         var blockState = level.getBlockState(blockPos);
         var block = blockState.getBlock();
@@ -83,7 +84,7 @@ public class TransporterItem extends Item {
             return InteractionResult.PASS;
         }
 
-        if (this.holdBlock(context)) {
+        if (this.holdBlock(context, provider)) {
             this.setIcon(context);
             level.setBlockAndUpdate(blockPos, Blocks.AIR.defaultBlockState());
             return InteractionResult.SUCCESS;
@@ -99,27 +100,25 @@ public class TransporterItem extends Item {
             return InteractionResult.SUCCESS;
         }
 
+        var provider = level.registryAccess();
         var itemStack = context.getItemInHand();
-        if (itemStack.getTag().contains(tagKey)) {
-            var nbt = itemStack.getTag();
+        if (itemStack.has(DataComponents.CUSTOM_DATA) && itemStack.get(DataComponents.CUSTOM_DATA).contains(tagKey)) {
+            var nbt = itemStack.get(DataComponents.CUSTOM_DATA);
 
             if (nbt == null) {
                 return InteractionResult.PASS;
             }
-            var containerBlock = ItemStack.of(nbt.getCompound(tagKey));
+            var containerBlock = ItemStack.parseOptional(provider, nbt.copyTag().getCompound(tagKey));
 
             if (containerBlock.isEmpty()) {
                 return InteractionResult.PASS;
             }
-
-            int damage = itemStack.getDamageValue() + 1;
-            if (this.placeBlock(context, containerBlock)) {
+            if (this.placeBlock(context, containerBlock, provider)) {
                 var player = context.getPlayer();
 
-                itemStack.hurtAndBreak(damage, player, (tmp) -> {
-                    tmp.broadcastBreakEvent(EquipmentSlot.MAINHAND);
-                    level.playSound(tmp, context.getClickedPos(), SoundEvents.WOOD_BREAK, SoundSource.PLAYERS, 1.5F, 0.85F);
-                });
+                itemStack.hurtAndBreak(1, player, EquipmentSlot.MAINHAND);
+
+                return InteractionResult.PASS;
             }
         }
 
@@ -128,26 +127,27 @@ public class TransporterItem extends Item {
 
     @OnlyIn(Dist.CLIENT)
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flagIn) {
-        if (stack.getTag() == null) {
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flagIn) {
+        if (!stack.has(DataComponents.CUSTOM_DATA)) {
             return;
         }
-        var contents = stack.getTag().getCompound(tagKey);
+        var contents = stack.get(DataComponents.CUSTOM_DATA).copyTag().getCompound(tagKey);
 
-        var hold = ItemStack.of(contents);
+        var provider = context.registries();
+        var hold = ItemStack.parseOptional(provider, contents);
         if (hold.getItem() != Items.AIR) {
             var iformattabletextcomponent = hold.getDisplayName().copy();
             tooltip.add(iformattabletextcomponent.withStyle(ChatFormatting.AQUA));
         }
         if (hold.getItem() instanceof BlockItem && ((BlockItem) hold.getItem()).getBlock() instanceof StorageBoxBlock) {
-            var compoundnbt = stack.getTag();
+            var compoundnbt = stack.get(DataComponents.CUSTOM_DATA).copyTag();
             if (compoundnbt.contains(BaseStorageBoxBlockEntity.tagKeyContents)) {
                 var nbt = compoundnbt.getCompound(BaseStorageBoxBlockEntity.tagKeyContents);
-                var storageContents = ItemStack.of(nbt);
+                var storageContents = ItemStack.parseOptional(provider, nbt);
                 if (!storageContents.isEmpty()) {
                     var type = StorageBoxType.valueOf(compoundnbt.getString(BaseStorageBoxBlockEntity.tagKeyTypeName));
                     var storageItems = NonNullList.withSize(BaseStorageBoxBlockEntity.getStorageStackSize(type), ItemStack.EMPTY);
-                    MIMUtils.readNonNullListShort(compoundnbt, storageItems);
+                    MIMUtils.readNonNullListShort(compoundnbt, storageItems, provider);
                     int count = 0;
                     for (var storageItem : storageItems) {
                         if (storageItem.getItem() == storageContents.getItem()) {
@@ -160,10 +160,10 @@ public class TransporterItem extends Item {
                 }
             }
         } else {
-            var compoundnbt = stack.getTag();
+            var compoundnbt = stack.get(DataComponents.CUSTOM_DATA).copyTag();
             if (compoundnbt.contains("Items", 9)) {
                 var nonnulllist = NonNullList.withSize(27, ItemStack.EMPTY);
-                ContainerHelper.loadAllItems(compoundnbt, nonnulllist);
+                ContainerHelper.loadAllItems(compoundnbt, nonnulllist, provider);
                 int i = 0;
                 int j = 0;
 
@@ -184,23 +184,22 @@ public class TransporterItem extends Item {
                 }
             }
         }
-
     }
 
-    private boolean holdBlock(UseOnContext context) {
+    private boolean holdBlock(UseOnContext context, Provider provider) {
         var itemStack = context.getItemInHand();
         var level = context.getLevel();
         var blockPos = context.getClickedPos();
         var blockState = level.getBlockState(blockPos);
 
         var blockEntity = level.getBlockEntity(blockPos);
-        if (blockEntity == null || !(blockEntity instanceof Container) || itemStack.getTag().contains(tagKey)) {
+        if (blockEntity == null || !(blockEntity instanceof Container) || itemStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().contains(tagKey)) {
             return false;
         }
 
         if (blockEntity != null && checkMatryoshka((Container) blockEntity)) {
-            var nbt = itemStack.getOrCreateTag();
-            var blockEntityTag = blockEntity.saveWithFullMetadata();
+            var nbt = itemStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+            var blockEntityTag = blockEntity.saveWithFullMetadata(provider);
             nbt.merge(blockEntityTag);
 
             var containerBlock = new ItemStack(blockState.getBlock(), 1);
@@ -214,14 +213,14 @@ public class TransporterItem extends Item {
 
             var tag = new CompoundTag();
             if (containerBlock != ItemStack.EMPTY) {
-                containerBlock.save(tag);
+                tag = (CompoundTag) containerBlock.save(provider, tag);
             }
-            itemStack.setTag(tag);
+            itemStack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
 
             nbt.put(tagKey, tag);
             nbt.put(blockStateKey, NbtUtils.writeBlockState(blockState));
 
-            itemStack.setTag(nbt);
+            itemStack.set(DataComponents.CUSTOM_DATA, CustomData.of(nbt));
 
             return true;
         }
@@ -234,14 +233,14 @@ public class TransporterItem extends Item {
         for (int i = 0; i < inventory.getContainerSize(); i++) {
             itemstack = inventory.getItem(i);
 
-            if (itemstack.getItem() == TransporterItem.this && itemstack.getTag().contains(tagKey)) {
+            if (itemstack.getItem() == TransporterItem.this && itemstack.get(DataComponents.CUSTOM_DATA).copyTag().contains(tagKey)) {
                 return false;
             }
         }
         return true;
     }
 
-    private boolean placeBlock(UseOnContext context, ItemStack containerBlock) {
+    private boolean placeBlock(UseOnContext context, ItemStack containerBlock, Provider provider) {
 
         var level = context.getLevel();
         var block = Block.byItem(containerBlock.getItem());
@@ -253,30 +252,51 @@ public class TransporterItem extends Item {
         if (blockPlaceContext.canPlace()) {
             boolean isReplaceable = level.getBlockState(blockPos).canBeReplaced(new BlockPlaceContext(context));
 
-            BlockEntity blockEntity;
-            BlockPos setBlockPos = blockPos;
+            var setBlockPos = blockPos;
             if (!isReplaceable) {
                 setBlockPos = blockPos.relative(context.getClickedFace());
             }
             var state = this.readBlockState(context, containerBlock);
 
             level.setBlockAndUpdate(setBlockPos, state);
-            blockEntity = level.getBlockEntity(setBlockPos);
+            var blockEntity = level.getBlockEntity(setBlockPos);
             if (blockEntity == null) {
                 level.setBlockAndUpdate(setBlockPos, Blocks.AIR.defaultBlockState());
                 return false;
             }
 
-            var nbt = itemStack.getOrCreateTag();
-
-            nbt.putInt("x", blockEntity.getBlockPos().getX());
-            nbt.putInt("y", blockEntity.getBlockPos().getY());
-            nbt.putInt("z", blockEntity.getBlockPos().getZ());
-            blockEntity.load(nbt);
+            var tag = itemStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+            tag.putInt("x", blockEntity.getBlockPos().getX());
+            tag.putInt("y", blockEntity.getBlockPos().getY());
+            tag.putInt("z", blockEntity.getBlockPos().getZ());
+            blockEntity.loadCustomOnly(tag, provider);
 
             block.setPlacedBy(level, blockEntity.getBlockPos(), blockEntity.getBlockState(), context.getPlayer(), containerBlock);
+
+            if (block instanceof ChestBlock) {
+                //v1.20.6からすでに置いてあるチェストの隣にトランスポーターでチェストを置いた時に、トランスポーターで置いたチェストは連結しようとするが、すでに置いてあるチェストが連結しなくなった（シングルのまま）問題が発生。
+                //これを解決するために、トランスポーターで置くブロックがチェストであるかつ周囲に連結できるチェストがすでにあった場合、そのチェストに対して連結できるようにする。
+
+                for (var direction : Direction.values()) {
+                    if (direction.getAxis().isHorizontal()) {
+                        var neighborPos = setBlockPos.relative(direction);
+                        var neighborEntity = level.getBlockEntity(neighborPos);
+                        if (neighborEntity != null && neighborEntity instanceof ChestBlockEntity) {
+                            var oldState = level.getBlockState(neighborPos);
+                            var neighborState = Block.updateFromNeighbourShapes(level.getBlockState(neighborPos), level, neighborPos);
+                            level.setBlockAndUpdate(neighborPos, neighborState);
+                            level.sendBlockUpdated(neighborPos, oldState, neighborState, 0);
+                        }
+                    }
+                }
+            }
             blockEntity.setChanged();
-            itemStack.setTag(null);
+            itemStack.remove(DataComponents.CUSTOM_DATA);
+            itemStack.remove(DataComponents.CUSTOM_MODEL_DATA);
+
+            var worldPosition = blockEntity.getBlockPos();
+            var newState = level.getBlockState(worldPosition);
+            level.sendBlockUpdated(worldPosition, blockEntity.getBlockState(), newState, 0);
             return true;
         }
         return false;
@@ -285,7 +305,7 @@ public class TransporterItem extends Item {
 
     private BlockState readBlockState(UseOnContext context, ItemStack containerBlock) {
         var stack = context.getItemInHand();
-        var blockStateTag = stack.getTag().getCompound(blockStateKey);
+        var blockStateTag = stack.get(DataComponents.CUSTOM_DATA).copyTag().getCompound(blockStateKey);
 
         var block = Block.byItem(containerBlock.getItem());
         var state = block.getStateForPlacement(new BlockPlaceContext(context));

@@ -13,7 +13,6 @@ public class PlatingItem extends Item {
 
     public PlatingItem(StorageBoxType type) {
         super(new Properties()
-                .durability(0)
                 .stacksTo(64));
         this.type = type;
     }

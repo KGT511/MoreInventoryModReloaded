@@ -15,7 +15,7 @@ import net.minecraft.world.item.ItemStack;
 public class PouchContainer extends AbstractContainerMenu {
 
     public static PouchContainer createContainerClientSide(int windowID, Inventory playerInventory, FriendlyByteBuf extraData) {
-        var inventory = new PouchInventory(playerInventory.player.getMainHandItem());
+        var inventory = new PouchInventory(playerInventory.player, playerInventory.player.getMainHandItem());
         return new PouchContainer(windowID, playerInventory, inventory);
     }
 

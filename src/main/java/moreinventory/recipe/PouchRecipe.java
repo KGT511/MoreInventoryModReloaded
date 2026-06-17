@@ -2,7 +2,7 @@ package moreinventory.recipe;
 
 import moreinventory.inventory.PouchInventory;
 import moreinventory.item.PouchItem;
-import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.DyeItem;
@@ -44,7 +44,7 @@ public class PouchRecipe extends CustomRecipe {
             }
         }
         if (0 < enderPearlCnt) {
-            int grade = new PouchInventory(pouch).getGrade();
+            int grade = new PouchInventory(level.registryAccess(), pouch).getGrade();
             if (PouchInventory.maxUpgradeNumCollectableSlot < grade + enderPearlCnt)
                 return false;
         }
@@ -54,7 +54,7 @@ public class PouchRecipe extends CustomRecipe {
 
     //完成品を返す
     @Override
-    public ItemStack assemble(CraftingContainer inventory, RegistryAccess ra) {
+    public ItemStack assemble(CraftingContainer inventory, HolderLookup.Provider provider) {
         var pouch = ItemStack.EMPTY;
         DyeColor dyeColor = null;
         int gradeUpCnt = 0;
@@ -76,7 +76,7 @@ public class PouchRecipe extends CustomRecipe {
         if (dyeColor != null)
             pouch = PouchItem.setColor(pouch, dyeColor);
         if (0 < gradeUpCnt) {
-            var pouchInventory = new PouchInventory(pouch);
+            var pouchInventory = new PouchInventory(provider, pouch);
             for (int i = 0; i < gradeUpCnt; ++i)
                 pouchInventory.increaseGrade();
         }

@@ -16,7 +16,7 @@ public class PouchContainerProvider implements MenuProvider {
     @Override
     public AbstractContainerMenu createMenu(int windowID, Inventory inventory, Player player) {
         this.name = player.getMainHandItem().getHoverName();
-        return new PouchContainer(windowID, inventory, new PouchInventory(player.getMainHandItem()));
+        return new PouchContainer(windowID, inventory, new PouchInventory(player, player.getMainHandItem()));
     }
 
     @Override

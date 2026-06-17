@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "moreinventorymod:storage_box_wood"
-            ]
+            "items": "moreinventorymod:storage_box_wood"
           }
         ]
       },

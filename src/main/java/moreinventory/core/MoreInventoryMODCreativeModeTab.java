@@ -19,9 +19,10 @@ public class MoreInventoryMODCreativeModeTab {
             .title(Component.translatable("itemGroup." + MoreInventoryMOD.MOD_ID))
             .icon(() -> new ItemStack(Blocks.CATCHALL.get()))
             .displayItems((fearture, output) -> {
-                for (var block : Blocks.BLOCKS.getEntries()) {
-                    output.accept(block.get());
-                }
+//                作成したBlockはすべてBlockItemに入れているためItemのみ追加で十分
+//                for (var block : Blocks.BLOCKS.getEntries()) {
+//                    output.accept(block.get());
+//                }
                 for (var item : Items.ITEMS.getEntries()) {
                     output.accept(item.get());
                 }

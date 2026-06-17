@@ -6,6 +6,7 @@ import moreinventory.blockentity.storagebox.network.IStorageBoxNetwork;
 import moreinventory.container.TransportContainer;
 import moreinventory.util.MIMUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.Container;
@@ -21,7 +22,9 @@ public class ImporterBlockEntity extends BaseTransportBlockEntity {
 
     public enum Val {
         REGISTER, WHITE
-    };
+    }
+
+    ;
 
     public static final String registerKey = "register";
     public static final String isWhiteKey = "is_white";
@@ -31,15 +34,15 @@ public class ImporterBlockEntity extends BaseTransportBlockEntity {
     }
 
     @Override
-    public void load(CompoundTag nbt) {
-        super.load(nbt);
+    public void loadAdditional(CompoundTag nbt, HolderLookup.Provider provider) {
+        super.loadAdditional(nbt, provider);
         this.register = nbt.getBoolean(registerKey);
         this.isWhite = nbt.getBoolean(isWhiteKey);
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound) {
-        super.saveAdditional(compound);
+    protected void saveAdditional(CompoundTag compound, HolderLookup.Provider provider) {
+        super.saveAdditional(compound, provider);
         compound.putBoolean(registerKey, this.register);
         compound.putBoolean(isWhiteKey, this.isWhite);
     }
@@ -93,7 +96,7 @@ public class ImporterBlockEntity extends BaseTransportBlockEntity {
         boolean result = !isWhite;
 
         for (ItemStack itemstack1 : this.slotItems) {
-            if (ItemStack.isSameItemSameTags(itemstack1, itemstack)) {
+            if (ItemStack.isSameItemSameComponents(itemstack1, itemstack)) {
                 result = isWhite;
             }
         }
@@ -138,12 +141,12 @@ public class ImporterBlockEntity extends BaseTransportBlockEntity {
             return;
         }
         switch (Val.values()[id]) {
-        case REGISTER:
-            setIsRegister(MIMUtils.intToBool(val));
-            break;
-        case WHITE:
-            setIsWhite(MIMUtils.intToBool(val));
-            break;
+            case REGISTER:
+                setIsRegister(MIMUtils.intToBool(val));
+                break;
+            case WHITE:
+                setIsWhite(MIMUtils.intToBool(val));
+                break;
         }
 
     }
@@ -153,10 +156,10 @@ public class ImporterBlockEntity extends BaseTransportBlockEntity {
             return 0;
         }
         switch (Val.values()[id]) {
-        case REGISTER:
-            return this.getIsRegister() ? 1 : 0;
-        case WHITE:
-            return this.getIswhite() ? 1 : 0;
+            case REGISTER:
+                return this.getIsRegister() ? 1 : 0;
+            case WHITE:
+                return this.getIswhite() ? 1 : 0;
         }
 
         return 0;

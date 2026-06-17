@@ -3,7 +3,7 @@
   "category": "misc",
   "key": {
     "M": {
-      "tag": "forge:ingots/gold"
+      "tag": "c:ingots/gold"
     },
     "S": {
       "tag": "minecraft:wooden_slabs"
@@ -19,6 +19,6 @@
   ],
   "result": {
     "count": 3,
-    "item": "moreinventorymod:storage_box_gold"
+    "id": "moreinventorymod:storage_box_gold"
   }
 }

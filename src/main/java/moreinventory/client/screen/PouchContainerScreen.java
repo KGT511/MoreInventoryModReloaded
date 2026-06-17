@@ -43,7 +43,7 @@ public class PouchContainerScreen extends AbstractContainerScreen<PouchContainer
         this.isStorageBoxButton = new ConfigButton(PouchInventory.Val.STORAGE_BOX.ordinal(),
                 0, 0, 16, 16, 184, 120, inventory.getIsStorageBox(), Component.empty(),
                 (id, val) -> {
-                    PacketDistributor.SERVER.noArg().send(new ServerboundPouchUpdatePacket(id, val));
+                    PacketDistributor.sendToServer(new ServerboundPouchUpdatePacket(id, val));
                 });
         this.isStorageBoxButton.setX(this.leftPos + this.imageWidth + 6);
         this.isStorageBoxButton.setY(this.topPos + 25 + this.grade * 18);
@@ -51,7 +51,7 @@ public class PouchContainerScreen extends AbstractContainerScreen<PouchContainer
         this.isHotBarButton = new ConfigButton(PouchInventory.Val.HOT_BAR.ordinal(),
                 0, 0, 16, 16, 200, 120, inventory.getIsHotBar(), Component.empty(),
                 (id, val) -> {
-                    PacketDistributor.SERVER.noArg().send(new ServerboundPouchUpdatePacket(id, val));
+                    PacketDistributor.sendToServer(new ServerboundPouchUpdatePacket(id, val));
                 });
         this.isHotBarButton.setX(this.leftPos + this.imageWidth + 24);
         this.isHotBarButton.setY(this.isStorageBoxButton.getY());
@@ -59,7 +59,7 @@ public class PouchContainerScreen extends AbstractContainerScreen<PouchContainer
         this.isAutoCollectButton = new ConfigButton(PouchInventory.Val.AUTO_COLLECT.ordinal(),
                 0, 0, 16, 16, 216, 120, inventory.getIsAUtoCollect(), Component.empty(),
                 (id, val) -> {
-                    PacketDistributor.SERVER.noArg().send(new ServerboundPouchUpdatePacket(id, val));
+                    PacketDistributor.sendToServer(new ServerboundPouchUpdatePacket(id, val));
                 });
         this.isAutoCollectButton.setX(this.leftPos + this.imageWidth + 42);
         this.isAutoCollectButton.setY(this.isStorageBoxButton.getY());

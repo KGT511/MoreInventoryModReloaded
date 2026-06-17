@@ -4,10 +4,10 @@ import moreinventory.core.MoreInventoryMOD;
 import moreinventory.data.lang.EnUsLanguageGenerator;
 import moreinventory.data.lang.JaJpLanguageGenerator;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 
-@Mod.EventBusSubscriber(modid = MoreInventoryMOD.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = MoreInventoryMOD.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
 public class DataGenerators {
     @SubscribeEvent
     public static void gatherData(GatherDataEvent event) {
@@ -23,8 +23,8 @@ public class DataGenerators {
 
         var blockTags = new BlockTagGenerator(packout, lookupProvider, existingFileHelper);
         generator.addProvider(event.includeServer(), blockTags);
-        generator.addProvider(event.includeServer(), LootTablesGenerator.create(packout));
-        generator.addProvider(event.includeServer(), new RecipesGenerator(packout));
+        generator.addProvider(event.includeServer(), LootTablesGenerator.create(packout, lookupProvider));
+        generator.addProvider(event.includeServer(), new RecipesGenerator(packout, lookupProvider));
         generator.addProvider(event.includeServer(), new EnUsLanguageGenerator(packout, MoreInventoryMOD.MOD_ID));
         generator.addProvider(event.includeServer(), new JaJpLanguageGenerator(packout, MoreInventoryMOD.MOD_ID));
     }

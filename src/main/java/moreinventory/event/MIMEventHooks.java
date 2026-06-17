@@ -4,52 +4,44 @@ import moreinventory.core.MoreInventoryMOD;
 import moreinventory.inventory.PouchInventory;
 import moreinventory.item.PouchItem;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.stats.Stats;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.neoforge.event.entity.player.EntityItemPickupEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
 
-@Mod.EventBusSubscriber(modid = MoreInventoryMOD.MOD_ID)
+@EventBusSubscriber(modid = MoreInventoryMOD.MOD_ID)
 public class MIMEventHooks {
 
     @SubscribeEvent
-    public static void pickupItem(EntityItemPickupEvent event) {
-        if (event.getEntity() instanceof ServerPlayer) {
-            var player = (ServerPlayer) event.getEntity();
-            var item = event.getItem().getItem();
+    public static void pickupItem(ItemEntityPickupEvent.Pre event) {
+        if (event.getPlayer() instanceof ServerPlayer) {
+            var player = (ServerPlayer) event.getPlayer();
+            var itemEntity = event.getItemEntity();
+            var item = itemEntity.getItem();
             var inventory = player.getInventory();
+            if (itemEntity.hasPickUpDelay()) {// これがないと触れた瞬間拾ってしまう（拾うまでのdelayがなければ拾うようにしている）
+                return;
+            }
 
             for (int i = 0; i < inventory.getContainerSize(); ++i) {
-                ItemStack itemstack = inventory.getItem(i);
+                var itemstack = inventory.getItem(i);
 
                 if (itemstack != null) {
-                    //                    String uuid = player.getStringUUID();
 
                     if (itemstack.getItem() instanceof PouchItem) {
-                        PouchInventory pouch = new PouchInventory(itemstack);
+                        var pouch = new PouchInventory(player, itemstack);
 
                         if (pouch.canAutoCollect(item)) {
                             PouchInventory.mergeItemStack(item, pouch);
                         }
 
-                        //                        if (Config.isFullAutoCollectPouch.contains(uuid)) {
-                        //                            pouch.collectAllItemStack(inventory, false);
-                        //                        }
+                        if (item.isEmpty()) {// 1.20.6よりイベントの仕様変更ですべてポーチに入った際に音が鳴らなくなったのでここで鳴らす
+                            var cnt = item.getCount();
+                            player.take(itemEntity, cnt);
+                            player.awardStat(Stats.ITEM_PICKED_UP.get(item.getItem()), cnt);
+                        }
                     }
 
-                    //                    if (Config.isCollectTorch.contains(uuid) && item.getItem() == Item.getItemFromBlock(Blocks.torch) && itemstack.getItem() == MoreInventoryMod.torchHolder ||
-                    //                            Config.isCollectArrow.contains(uuid) && item.getItem() == Items.arrow && itemstack.getItem() == MoreInventoryMod.arrowHolder) {
-                    //                        int damage = itemstack.getItemDamage();
-                    //                        int count = item.stackSize;
-                    //
-                    //                        if (damage >= count) {
-                    //                            itemstack.setItemDamage(damage - count);
-                    //                            item.stackSize = 0;
-                    //                        } else {
-                    //                            itemstack.setItemDamage(0);
-                    //                            item.stackSize -= damage;
-                    //                        }
-                    //                    }
                 }
             }
         }

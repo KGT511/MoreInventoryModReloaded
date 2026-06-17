@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "minecraft:chest"
-            ]
+            "items": "minecraft:chest"
           }
         ]
       },
@@ -17,9 +15,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "moreinventorymod:storage_box_wood"
-            ]
+            "items": "moreinventorymod:storage_box_wood"
           }
         ]
       },
